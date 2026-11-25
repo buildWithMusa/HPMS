@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medicine Catalogue | HPMS</title>
+</head>
+<body>
+
+<h1>Medicine Catalogue</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+{% if perms.medicines.add_medicine %}
+    <p>
+        <a href="{% url 'medicines:register' %}">
+            Register New Medicine
+        </a>
+    </p>
+{% endif %}
+
+<form method="get">
+    <input
+        type="text"
+        name="q"
+        value="{{ search }}"
+        placeholder="Search medicine..."
+    >
+
+    <select name="status">
+        <option value="">All medicines</option>
+
+        <option value="active"
+            {% if status == "active" %}selected{% endif %}>
+            Active
+        </option>
+
+        <option value="inactive"
+            {% if status == "inactive" %}selected{% endif %}>
+            Inactive
+        </option>
+    </select>
+
+    <button type="submit">Search</button>
+
+    <a href="{% url 'medicines:directory' %}">Clear</a>
+</form>
+
+<hr>
+
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            <th>Generic Name</th>
+            <th>Brand Name</th>
+            <th>Category</th>
+            <th>Strength</th>
+            <th>Dosage Form</th>
+            <th>Unit</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for medicine in page_obj %}
+            <tr>
+                <td>{{ medicine.generic_name }}</td>
+
+                <td>{{ medicine.brand_name|default:"—" }}</td>
+
+                <td>{{ medicine.category.name }}</td>
+
+                <td>{{ medicine.strength }}</td>
+
+                <td>{{ medicine.get_dosage_form_display }}</td>
+
+                <td>{{ medicine.get_unit_of_measure_display }}</td>
+
+                <td>
+                    {% if medicine.is_active %}
+                        Active
+                    {% else %}
+                        Inactive
+                    {% endif %}
+                </td>
+
+                <td>
+                    <a href="{% url 'medicines:detail' medicine.pk %}">
+                        View
+                    </a>
+                </td>
+            </tr>
+
+        {% empty %}
+            <tr>
+                <td colspan="8">No medicines found.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p>
+    Page {{ page_obj.number }}
+    of {{ page_obj.paginator.num_pages }}
+</p>
+
+{% if page_obj.has_previous %}
+    <a href="?q={{ search|urlencode }}&status={{ status }}&page={{ page_obj.previous_page_number }}">
+        Previous
+    </a>
+{% endif %}
+
+{% if page_obj.has_next %}
+    <a href="?q={{ search|urlencode }}&status={{ status }}&page={{ page_obj.next_page_number }}">
+        Next
+    </a>
+{% endif %}
+
+</body>
+</html>

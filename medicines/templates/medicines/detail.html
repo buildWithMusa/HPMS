@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ medicine.display_name }} | HPMS</title>
+</head>
+<body>
+
+<h1>{{ medicine.display_name }}</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<table border="1" cellpadding="8">
+
+    <tr>
+        <th>Generic Name</th>
+        <td>{{ medicine.generic_name }}</td>
+    </tr>
+
+    <tr>
+        <th>Brand Name</th>
+        <td>{{ medicine.brand_name|default:"Not specified" }}</td>
+    </tr>
+
+    <tr>
+        <th>Category</th>
+        <td>{{ medicine.category.name }}</td>
+    </tr>
+
+    <tr>
+        <th>Strength</th>
+        <td>{{ medicine.strength }}</td>
+    </tr>
+
+    <tr>
+        <th>Dosage Form</th>
+        <td>{{ medicine.get_dosage_form_display }}</td>
+    </tr>
+
+    <tr>
+        <th>Unit of Measure</th>
+        <td>{{ medicine.get_unit_of_measure_display }}</td>
+    </tr>
+
+    <tr>
+        <th>Description</th>
+        <td>{{ medicine.description|default:"Not provided" }}</td>
+    </tr>
+
+    <tr>
+        <th>Status</th>
+        <td>
+            {% if medicine.is_active %}
+                Active
+            {% else %}
+                Inactive
+            {% endif %}
+        </td>
+    </tr>
+
+    <tr>
+        <th>Created</th>
+        <td>{{ medicine.created_at }}</td>
+    </tr>
+
+    <tr>
+        <th>Last Updated</th>
+        <td>{{ medicine.updated_at }}</td>
+    </tr>
+
+</table>
+
+{% if perms.medicines.change_medicine %}
+    <p>
+        <a href="{% url 'medicines:update' medicine.pk %}">
+            Edit Medicine
+        </a>
+    </p>
+{% endif %}
+
+{% if perms.medicines.can_manage_medicine_status %}
+
+    <form
+        method="post"
+        action="{% url 'medicines:change_status' medicine.pk %}"
+    >
+
+        {% csrf_token %}
+
+        {% if medicine.is_active %}
+
+            <input
+                type="hidden"
+                name="action"
+                value="deactivate"
+            >
+
+            <button
+                type="submit"
+                onclick="return confirm('Deactivate this medicine?')"
+            >
+                Deactivate Medicine
+            </button>
+
+        {% else %}
+
+            <input
+                type="hidden"
+                name="action"
+                value="activate"
+            >
+
+            <button
+                type="submit"
+                onclick="return confirm('Activate this medicine?')"
+            >
+                Activate Medicine
+            </button>
+
+        {% endif %}
+
+    </form>
+
+{% endif %}
+
+<p>
+    <a href="{% url 'medicines:directory' %}">
+        Back to Medicine Catalogue
+    </a>
+</p>
+
+</body>
+</html>

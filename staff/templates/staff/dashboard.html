@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HPMS Staff Dashboard</title>
+</head>
+
+<body>
+
+    <h1>Hospital Pharmacy Management System</h1>
+
+    <h2>Welcome, {{ request.user.first_name }}</h2>
+
+    <p>You are successfully logged in to HPMS.</p>
+
+    <p>Email: {{ request.user.email }}</p>
+
+    <form method="POST" action="{% url 'staff:logout' %}">
+
+        {% csrf_token %}
+
+        <button type="submit">Log Out</button>
+
+    </form>
+
+</body>
+</html>

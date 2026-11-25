@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Directory | HPMS</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 25px;
+            color: #263238;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .panel {
+            background: white;
+            padding: 22px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 12px;
+        }
+
+        input, select {
+            padding: 12px;
+            width: 100%;
+            border: 1px solid #ccd2d8;
+            border-radius: 5px;
+        }
+
+        button, .button {
+            background: #145da0;
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f0f3f6;
+        }
+
+        .active {
+            color: #16803c;
+            font-weight: bold;
+        }
+
+        .inactive {
+            color: #b42318;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .pagination a {
+            color: #145da0;
+            text-decoration: none;
+        }
+
+        @media(max-width: 750px) {
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <div>
+            <h1>Patient Directory</h1>
+            <p>Hospital Pharmacy Management System</p>
+        </div>
+
+        <a class="button" href="{% url 'patients:register' %}">
+            Register Patient
+        </a>
+    </div>
+
+    <section class="panel">
+
+        <h2>Find Patients</h2>
+
+        <form method="GET">
+
+            <div class="filters">
+
+                <input
+                    type="text"
+                    name="q"
+                    placeholder="Search name, hospital number, phone or email"
+                    value="{{ query }}"
+                >
+
+                <select name="sex">
+                    <option value="">All sexes</option>
+
+                    {% for value, label in sex_choices %}
+                        <option
+                            value="{{ value }}"
+                            {% if sex == value %}selected{% endif %}
+                        >
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <select name="status">
+                    <option value="all"
+                        {% if status == "all" %}selected{% endif %}>
+                        All patients
+                    </option>
+
+                    <option value="active"
+                        {% if status == "active" %}selected{% endif %}>
+                        Active
+                    </option>
+
+                    <option value="inactive"
+                        {% if status == "inactive" %}selected{% endif %}>
+                        Inactive
+                    </option>
+                </select>
+
+                <button type="submit">Search</button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Registered Patients</h2>
+
+        <p>Total matching patients: {{ total_patients }}</p>
+
+        <div style="overflow-x:auto;">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Hospital Number</th>
+                        <th>Patient Name</th>
+                        <th>Sex</th>
+                        <th>Phone</th>
+                        <th>Registration Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for patient in page_obj %}
+
+                        <tr>
+
+                            <td>{{ patient.hospital_number }}</td>
+
+                            <td>{{ patient.full_name }}</td>
+
+                            <td>{{ patient.get_sex_display }}</td>
+
+                            <td>
+                                {{ patient.phone_number|default:"Not provided" }}
+                            </td>
+
+                            <td>
+                                {{ patient.registered_at|date:"d M Y" }}
+                            </td>
+
+                            <td>
+                                {% if patient.is_active %}
+                                    <span class="active">Active</span>
+                                {% else %}
+                                    <span class="inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <a href="{% url 'patients:profile' patient.pk %}">
+                                    View Profile
+                                </a>
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="7">
+                                No patients found.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="pagination">
+
+            {% if page_obj.has_previous %}
+                <a href="?q={{ query|urlencode }}&sex={{ sex|urlencode }}&status={{ status|urlencode }}&page=1">
+                    First
+                </a>
+
+                <a href="?q={{ query|urlencode }}&sex={{ sex|urlencode }}&status={{ status|urlencode }}&page={{ page_obj.previous_page_number }}">
+                    Previous
+                </a>
+            {% endif %}
+
+            <span>
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?q={{ query|urlencode }}&sex={{ sex|urlencode }}&status={{ status|urlencode }}&page={{ page_obj.next_page_number }}">
+                    Next
+                </a>
+
+                <a href="?q={{ query|urlencode }}&sex={{ sex|urlencode }}&status={{ status|urlencode }}&page={{ page_obj.paginator.num_pages }}">
+                    Last
+                </a>
+            {% endif %}
+
+        </div>
+
+    </section>
+
+</div>
+
+</body>
+</html>

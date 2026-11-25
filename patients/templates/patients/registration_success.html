@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Registration Successful | HPMS</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 40px 15px;
+        }
+
+        .card {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #145da0;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            background: #145da0;
+            color: white;
+            padding: 12px 18px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h1>Patient Registration Successful</h1>
+
+    <p>The patient has been registered successfully.</p>
+
+    <p><strong>Hospital Number</strong></p>
+
+    <p class="number">
+        {{ patient.hospital_number }}
+    </p>
+
+    <p>
+        <strong>Patient Name:</strong>
+        {{ patient.full_name }}
+    </p>
+
+    <p>
+        <strong>Sex:</strong>
+        {{ patient.get_sex_display }}
+    </p>
+
+    <p>
+        <strong>Registration Date:</strong>
+        {{ patient.registered_at }}
+    </p>
+
+    <a href="{% url 'patients:register' %}">
+        Register Another Patient
+    </a>
+
+</div>
+
+</body>
+</html>

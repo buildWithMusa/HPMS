@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HPMS Staff Login</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f5f8;
+            padding: 50px 15px;
+        }
+
+        .login-box {
+            max-width: 420px;
+            margin: auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 18px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            background: #1456a0;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .errorlist {
+            color: #b42318;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+    <h2>HPMS Staff Login</h2>
+
+    <p>Enter your staff email and password.</p>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">Sign In</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expiry Report - HPMS</title>
+</head>
+<body>
+    <h1>Medicine Expiry Report</h1>
+
+    <p><a href="{% url 'inventory:dashboard' %}">Inventory Dashboard</a></p>
+
+    <h2>Near Expiry (Next 90 Days)</h2>
+
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Medicine</th>
+            <th>Batch</th>
+            <th>Location</th>
+            <th>Quantity</th>
+            <th>Expiry Date</th>
+        </tr>
+
+        {% for balance in near_expiry %}
+        <tr>
+            <td>{{ balance.batch.medicine.display_name }}</td>
+            <td>{{ balance.batch.batch_number }}</td>
+            <td>{{ balance.location }}</td>
+            <td>{{ balance.quantity }}</td>
+            <td>{{ balance.batch.expiry_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No near-expiry stock.</td></tr>
+        {% endfor %}
+    </table>
+
+    <h2>Expired Stock</h2>
+
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Medicine</th>
+            <th>Batch</th>
+            <th>Location</th>
+            <th>Quantity</th>
+            <th>Expiry Date</th>
+        </tr>
+
+        {% for balance in expired %}
+        <tr>
+            <td>{{ balance.batch.medicine.display_name }}</td>
+            <td>{{ balance.batch.batch_number }}</td>
+            <td>{{ balance.location }}</td>
+            <td>{{ balance.quantity }}</td>
+            <td>{{ balance.batch.expiry_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No expired stock.</td></tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

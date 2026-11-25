@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medicine Batch - HPMS</title>
+</head>
+<body>
+    <h1>Medicine Batch Details</h1>
+
+    <p><a href="{% url 'inventory:balances' %}">Back to Stock Balances</a></p>
+
+    <h2>{{ batch.medicine.display_name }}</h2>
+
+    <p>Batch number: {{ batch.batch_number }}</p>
+    <p>Manufactured: {{ batch.manufacture_date }}</p>
+    <p>Expires: {{ batch.expiry_date }}</p>
+    <p>Purchase price: {{ batch.purchase_price }}</p>
+    <p>Selling price: {{ batch.selling_price }}</p>
+    <p>Status: {{ batch.get_is_active_display|default:batch.is_active }}</p>
+
+    <h2>Stock by Location</h2>
+
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Location</th>
+            <th>Quantity</th>
+        </tr>
+        {% for balance in balances %}
+        <tr>
+            <td>{{ balance.location }}</td>
+            <td>{{ balance.quantity }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2">No stock recorded.</td></tr>
+        {% endfor %}
+    </table>
+
+    <h2>Batch Movement History</h2>
+
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Date</th>
+            <th>Movement</th>
+            <th>Source</th>
+            <th>Destination</th>
+            <th>Quantity</th>
+            <th>Staff</th>
+        </tr>
+        {% for movement in movements %}
+        <tr>
+            <td>{{ movement.created_at }}</td>
+            <td>{{ movement.get_movement_type_display }}</td>
+            <td>{{ movement.source_location|default:"-" }}</td>
+            <td>{{ movement.destination_location|default:"-" }}</td>
+            <td>{{ movement.quantity }}</td>
+            <td>{{ movement.performed_by.email }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No movements recorded.</td></tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

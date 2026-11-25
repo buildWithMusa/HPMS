@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Balances - HPMS</title>
+</head>
+<body>
+    <h1>Stock Balances</h1>
+
+    <p><a href="{% url 'inventory:dashboard' %}">Inventory Dashboard</a></p>
+
+    <form method="get">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search medicine or batch">
+
+        <select name="location">
+            <option value="">All locations</option>
+            {% for location in locations %}
+                <option value="{{ location.pk }}"
+                    {% if location_id == location.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ location }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Search</button>
+    </form>
+
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Medicine</th>
+            <th>Batch</th>
+            <th>Location</th>
+            <th>Quantity</th>
+            <th>Expiry Date</th>
+            <th>Details</th>
+        </tr>
+
+        {% for balance in page_obj %}
+        <tr>
+            <td>{{ balance.batch.medicine.display_name }}</td>
+            <td>{{ balance.batch.batch_number }}</td>
+            <td>{{ balance.location }}</td>
+            <td>{{ balance.quantity }}</td>
+            <td>{{ balance.batch.expiry_date }}</td>
+            <td>
+                <a href="{% url 'inventory:batch_detail' balance.batch.pk %}">View Batch</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No stock balances found.</td></tr>
+        {% endfor %}
+    </table>
+
+    <p>
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ search }}&location={{ location_id }}">Previous</a>
+        {% endif %}
+
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ search }}&location={{ location_id }}">Next</a>
+        {% endif %}
+    </p>
+</body>
+</html>

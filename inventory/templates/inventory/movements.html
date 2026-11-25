@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Movements - HPMS</title>
+</head>
+<body>
+    <h1>Stock Movement History</h1>
+
+    <p><a href="{% url 'inventory:dashboard' %}">Inventory Dashboard</a></p>
+
+    <form method="get">
+        <select name="type">
+            <option value="">All movements</option>
+            {% for code, label in movement_types %}
+                <option value="{{ code }}"
+                    {% if selected_type == code %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Date</th>
+            <th>Medicine</th>
+            <th>Batch</th>
+            <th>Movement</th>
+            <th>Source</th>
+            <th>Destination</th>
+            <th>Quantity</th>
+            <th>Staff</th>
+            <th>Notes</th>
+        </tr>
+
+        {% for movement in page_obj %}
+        <tr>
+            <td>{{ movement.created_at }}</td>
+            <td>{{ movement.batch.medicine.display_name }}</td>
+            <td>{{ movement.batch.batch_number }}</td>
+            <td>{{ movement.get_movement_type_display }}</td>
+            <td>{{ movement.source_location|default:"-" }}</td>
+            <td>{{ movement.destination_location|default:"-" }}</td>
+            <td>{{ movement.quantity }}</td>
+            <td>{{ movement.performed_by.email }}</td>
+            <td>{{ movement.notes }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9">No movements recorded.</td></tr>
+        {% endfor %}
+    </table>
+
+    <p>
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&type={{ selected_type }}">Previous</a>
+        {% endif %}
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&type={{ selected_type }}">Next</a>
+        {% endif %}
+    </p>
+</body>
+</html>

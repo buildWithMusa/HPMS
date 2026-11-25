@@ -1,0 +1,488 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Staff Directory | HPMS</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #263445;
+        }
+
+        .header {
+            background: #17365d;
+            color: white;
+            padding: 22px 35px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 25px;
+        }
+
+        .header p {
+            margin: 7px 0 0;
+            color: #d5e1ef;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .summary {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1;
+            box-shadow: 0 2px 8px #0000000d;
+        }
+
+        .summary-card span {
+            color: #667085;
+            font-size: 14px;
+        }
+
+        .summary-card h2 {
+            margin: 10px 0 0;
+            font-size: 28px;
+        }
+
+        .panel {
+            background: white;
+            padding: 22px;
+            border-radius: 8px;
+            margin-bottom: 22px;
+            box-shadow: 0 2px 8px #0000000d;
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            font-size: 19px;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 12px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #d0d5dd;
+            border-radius: 5px;
+            background: white;
+        }
+
+        button, .reset {
+            display: inline-block;
+            padding: 11px 17px;
+            border: none;
+            border-radius: 5px;
+            background: #1769aa;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .reset {
+            background: #667085;
+            margin-left: 5px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eaecf0;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475467;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .leave {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .suspended {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .terminated {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .account-inactive {
+            color: #b42318;
+            font-weight: bold;
+        }
+
+        .account-active {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 22px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .pagination a {
+            color: #1769aa;
+            text-decoration: none;
+            margin-left: 12px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 35px;
+            color: #667085;
+        }
+
+        @media (max-width: 900px) {
+            .filters {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .summary {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="header">
+    <h1>Hospital Pharmacy Management System</h1>
+    <p>Staff Management / Staff Directory</p>
+</header>
+
+<main class="container">
+
+    <section class="summary">
+
+        <div class="summary-card">
+            <span>Total matching employees</span>
+            <h2>{{ total_staff }}</h2>
+        </div>
+
+        <div class="summary-card">
+            <span>Current page</span>
+            <h2>{{ page_obj.number }}</h2>
+        </div>
+
+        <div class="summary-card">
+            <span>Total pages</span>
+            <h2>{{ page_obj.paginator.num_pages }}</h2>
+        </div>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Search and Filter Employees</h2>
+
+        <form method="GET">
+
+            <div class="filters">
+
+                <input
+                    type="search"
+                    name="search"
+                    placeholder="Name, email or staff number"
+                    value="{{ search }}"
+                >
+
+                <select name="department">
+
+                    <option value="">All departments</option>
+
+                    {% for department in departments %}
+
+                        <option
+                            value="{{ department.id }}"
+                            {% if selected_department == department.id|stringformat:"s" %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ department.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <select name="status">
+
+                    <option value="">All employment statuses</option>
+
+                    {% for value, label in employment_statuses %}
+
+                        <option
+                            value="{{ value }}"
+                            {% if selected_status == value %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ label }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <select name="role">
+
+                    <option value="">All system roles</option>
+
+                    {% for group in roles %}
+
+                        <option
+                            value="{{ group.name }}"
+                            {% if selected_role == group.name %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ group.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <button type="submit">Search</button>
+
+            </div>
+
+            <div style="margin-top: 15px;">
+                <a href="{% url 'staff:directory' %}" class="reset">
+                    Clear filters
+                </a>
+            </div>
+
+        </form>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Registered Hospital Employees</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Staff Number</th>
+                        <th>Employee Name</th>
+                        <th>Email</th>
+                        <th>Job Title</th>
+                        <th>Department</th>
+                        <th>System Role</th>
+                        <th>Employment Status</th>
+                        <th>Account Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for employee in staff_members %}
+
+                        <tr>
+
+                            <td>{{ employee.staff_number }}</td>
+
+                            <td>
+                                {{ employee.first_name }}
+                                {% if employee.middle_name %}
+                                    {{ employee.middle_name }}
+                                {% endif %}
+                                {{ employee.last_name }}
+                            </td>
+
+                            <td>{{ employee.user.email }}</td>
+
+                            <td>{{ employee.job_title }}</td>
+
+                            <td>
+                                {% with assignment=employee.current_assignments.0 %}
+                                    {% if assignment %}
+                                        {{ assignment.department.name }}
+                                        {% if assignment.service_area %}
+                                            <br>
+                                            <small>
+                                                {{ assignment.service_area.name }}
+                                            </small>
+                                        {% endif %}
+                                    {% else %}
+                                        Not assigned
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+
+                            <td>
+                                {% for group in employee.user.groups.all %}
+                                    {{ group.name }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    No role assigned
+                                {% endfor %}
+                            </td>
+
+                            <td>
+                                <span class="status
+                                    {% if employee.employment_status == 'ACTIVE' %}
+                                        active
+                                    {% elif employee.employment_status == 'ON_LEAVE' %}
+                                        leave
+                                    {% elif employee.employment_status == 'SUSPENDED' %}
+                                        suspended
+                                    {% else %}
+                                        terminated
+                                    {% endif %}
+                                ">
+                                    {{ employee.get_employment_status_display }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if employee.user.is_active %}
+                                    <span class="account-active">
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="account-inactive">
+                                        Awaiting activation
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="8" class="empty">
+                                No employees match your search.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="pagination">
+
+            <span>
+                Showing {{ page_obj.start_index }}
+                to {{ page_obj.end_index }}
+                of {{ total_staff }} employees
+            </span>
+
+            <div>
+
+                {% if page_obj.has_previous %}
+
+                    <a href="?search={{ search|urlencode }}&department={{ selected_department|urlencode }}&status={{ selected_status|urlencode }}&role={{ selected_role|urlencode }}&page=1">
+                        First
+                    </a>
+
+                    <a href="?search={{ search|urlencode }}&department={{ selected_department|urlencode }}&status={{ selected_status|urlencode }}&role={{ selected_role|urlencode }}&page={{ page_obj.previous_page_number }}">
+                        Previous
+                    </a>
+
+                {% endif %}
+
+                <strong>
+                    Page {{ page_obj.number }}
+                    of {{ page_obj.paginator.num_pages }}
+                </strong>
+
+                {% if page_obj.has_next %}
+
+                    <a href="?search={{ search|urlencode }}&department={{ selected_department|urlencode }}&status={{ selected_status|urlencode }}&role={{ selected_role|urlencode }}&page={{ page_obj.next_page_number }}">
+                        Next
+                    </a>
+
+                    <a href="?search={{ search|urlencode }}&department={{ selected_department|urlencode }}&status={{ selected_status|urlencode }}&role={{ selected_role|urlencode }}&page={{ page_obj.paginator.num_pages }}">
+                        Last
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>

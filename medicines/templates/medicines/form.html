@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page_title }} | HPMS</title>
+</head>
+<body>
+
+<h1>{{ page_title }}</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+
+    {{ form.non_field_errors }}
+
+    {% for field in form %}
+        <p>
+            {{ field.label_tag }}
+
+            <br>
+
+            {{ field }}
+
+            {{ field.errors }}
+
+            {% if field.help_text %}
+                <small>{{ field.help_text }}</small>
+            {% endif %}
+        </p>
+    {% endfor %}
+
+    <button type="submit">Save Medicine</button>
+</form>
+
+<p>
+    <a href="{% url 'medicines:directory' %}">
+        Back to Medicine Catalogue
+    </a>
+</p>
+
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Dashboard | HPMS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 25px;
+            color: #263238;
+        }
+        h1 { margin-bottom: 5px; }
+        .subtitle { color: #64748b; margin-bottom: 25px; }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 9px;
+            box-shadow: 0 2px 8px #0000000d;
+        }
+        .card h3 { color: #64748b; font-size: 14px; }
+        .number { font-size: 28px; font-weight: bold; }
+        .links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .links a {
+            background: #155e75;
+            color: white;
+            padding: 11px 16px;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            padding: 11px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+        th { background: #f8fafc; }
+        .empty { color: #64748b; }
+    </style>
+</head>
+<body>
+
+    <h1>Pharmacy Inventory Dashboard</h1>
+    <p class="subtitle">Hospital Pharmacy Management System</p>
+
+    <div class="cards">
+        <div class="card">
+            <h3>Total Stock Units</h3>
+            <div class="number">{{ total_stock|default:0 }}</div>
+        </div>
+        <div class="card">
+            <h3>Active Batches</h3>
+            <div class="number">{{ active_batches|default:0 }}</div>
+        </div>
+        <div class="card">
+            <h3>Stock Locations</h3>
+            <div class="number">{{ total_locations|default:0 }}</div>
+        </div>
+        <div class="card">
+            <h3>Expiring Batches</h3>
+            <div class="number">{{ near_expiry_count|default:0 }}</div>
+        </div>
+        <div class="card">
+            <h3>Expired Batches</h3>
+            <div class="number">{{ expired_count|default:0 }}</div>
+        </div>
+    </div>
+
+    <div class="links">
+        <a href="{% url 'inventory:stock_balances' %}">View Stock</a>
+        <a href="{% url 'inventory:receive_stock' %}">Receive Stock</a>
+        <a href="{% url 'inventory:transfer_stock' %}">Transfer Stock</a>
+        <a href="{% url 'inventory:adjust_stock' %}">Adjust Stock</a>
+        <a href="{% url 'inventory:movement_history' %}">Movement History</a>
+        <a href="{% url 'inventory:expiry_report' %}">Expiry Report</a>
+    </div>
+
+    <div class="section">
+        <h2>Recent Stock Movements</h2>
+        {% if recent_movements %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Medicine Batch</th>
+                        <th>Movement</th>
+                        <th>Quantity</th>
+                        <th>Performed By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movement in recent_movements %}
+                    <tr>
+                        <td>{{ movement.created_at|date:"d M Y H:i" }}</td>
+                        <td>{{ movement.batch }}</td>
+                        <td>{{ movement.get_movement_type_display }}</td>
+                        <td>{{ movement.quantity }}</td>
+                        <td>{{ movement.performed_by }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="empty">No stock movements have been recorded yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Stock Requiring Attention</h2>
+        {% if near_expiry %}
+            <h3>Expiring Stock</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Batch</th>
+                        <th>Expiry Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for balance in near_expiry %}
+                    <tr>
+                        <td>{{ balance.batch.medicine }}</td>
+                        <td>{{ balance.batch.batch_number }}</td>
+                        <td>{{ balance.batch.expiry_date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="empty">No stock is currently listed as nearing expiry.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>

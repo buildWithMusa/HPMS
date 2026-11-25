@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register Staff | HPMS</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 15px;
+            font-family: Arial, sans-serif;
+            background: #f3f5f8;
+            color: #263445;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.07);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .section {
+            margin-top: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        input, select {
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 13px 22px;
+            border: none;
+            border-radius: 5px;
+            background: #1456a0;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0d417d;
+        }
+
+        .errorlist {
+            color: #b42318;
+            font-size: 13px;
+        }
+
+        .messages {
+            padding: 12px;
+            background: #e8f7ec;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .help {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Register Hospital Staff</h1>
+
+    <p>
+        Create a staff account, assign a system role,
+        and connect the employee to a hospital department.
+    </p>
+
+    {% for message in messages %}
+        <div class="messages">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <form method="POST" action="{% url 'staff:register' %}">
+
+        {% csrf_token %}
+
+        <h3 class="section">Account Information</h3>
+
+        <div class="form-grid">
+            <div class="field">
+                <label>{{ form.email.label }}</label>
+                {{ form.email }}
+                {{ form.email.errors }}
+            </div>
+
+            <div class="field">
+                <label>{{ form.role.label }}</label>
+                {{ form.role }}
+                {{ form.role.errors }}
+            </div>
+        </div>
+
+        <h3 class="section">Employee Information</h3>
+
+        <div class="form-grid">
+
+            <div class="field">
+                <label>{{ form.staff_number.label }}</label>
+                {{ form.staff_number }}
+                {{ form.staff_number.errors }}
+            </div>
+
+            <div class="field">
+                <label>{{ form.job_title.label }}</label>
+                {{ form.job_title }}
+                {{ form.job_title.errors }}
+            </div>
+
+            <div class="field">
+                <label>{{ form.first_name.label }}</label>
+                {{ form.first_name }}
+                {{ form.first_name.errors }}
+            </div>
+
+            <div class="field">
+                <label>{{ form.middle_name.label }}</label>
+                {{ form.middle_name }}
+                {{ form.middle_name.errors }}
+            </div>
+
+            <div class="field">
+                <label>{{ form.last_name.label }}</label>
+                {{ form.last_name }}
+                {{ form.last_name.errors }}
+            </div>
+
+            <div class="field">
+                <label>{{ form.phone_number.label }}</label>
+                {{ form.phone_number }}
+                {{ form.phone_number.errors }}
+            </div>
+
+            <div class="field">
+                <label>{{ form.date_employed.label }}</label>
+                {{ form.date_employed }}
+                {{ form.date_employed.errors }}
+            </div>
+
+        </div>
+
+        <h3 class="section">Department Assignment</h3>
+
+        <div class="form-grid">
+
+            <div class="field">
+                <label>{{ form.department.label }}</label>
+                {{ form.department }}
+                {{ form.department.errors }}
+            </div>
+
+            <div class="field">
+                <label>{{ form.service_area.label }}</label>
+                {{ form.service_area }}
+                {{ form.service_area.errors }}
+            </div>
+
+        </div>
+
+        <p class="help">
+            The selected employee account will require password
+            setup before the employee can log in.
+        </p>
+
+        <button type="submit">
+            Register Staff Member
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
