@@ -1,0 +1,36 @@
+{% extends "procurement/base.html" %}
+{% block title %}Dispense Prescription | HPMS{% endblock %}
+{% block content %}
+<h2>Dispense Prescription</h2>
+
+<div class="panel">
+    <p><strong>Prescription:</strong> {{ prescription.prescription_number }}</p>
+    <p><strong>Patient:</strong> {{ prescription.patient.full_name }}</p>
+    <p><strong>Hospital number:</strong> {{ prescription.patient.hospital_number }}</p>
+    <p><strong>Status:</strong> {{ prescription.get_status_display }}</p>
+</div>
+
+<div class="panel">
+    <h3>Prescribed medicines and remaining quantities</h3>
+    <table>
+        <tr><th>Medicine</th><th>Prescribed</th><th>Remaining</th></tr>
+        {% for item in line_details %}
+        <tr>
+            <td>{{ item.line.medicine.display_name }}</td>
+            <td>{{ item.line.quantity }}</td>
+            <td>{{ item.remaining }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="panel">
+    <h3>Record dispensing</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Record dispensing</button>
+        <a class="button secondary" href="{% url 'dispensing:dashboard' %}">Cancel</a>
+    </form>
+</div>
+{% endblock %}

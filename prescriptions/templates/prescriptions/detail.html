@@ -1,0 +1,102 @@
+{% extends "procurement/base.html" %}
+{% block title %}{{ prescription.prescription_number }}{% endblock %}
+{% block content %}
+<div class="panel">
+    <h2>Prescription {{ prescription.prescription_number }}</h2>
+    <p><strong>Patient:</strong> {{ prescription.patient.full_name }}</p>
+    <p><strong>Hospital number:</strong> {{ prescription.patient.hospital_number }}</p>
+    <p><strong>Source:</strong> {{ prescription.get_source_display }}</p>
+    <p><strong>Status:</strong> {{ prescription.get_status_display }}</p>
+    <p><strong>Diagnosis:</strong> {{ prescription.diagnosis|default:"Not recorded" }}</p>
+    <p><strong>Clinical notes:</strong> {{ prescription.clinical_notes|default:"None" }}</p>
+    <p><strong>Recorded by:</strong> {{ prescription.recorded_by }}</p>
+
+    {% if prescription.source == "ELECTRONIC" %}
+        <p><strong>Prescriber:</strong> {{ prescription.prescribed_by }}</p>
+    {% else %}
+        <p><strong>Paper prescriber:</strong> {{ prescription.paper_prescriber_name }}</p>
+        <p><strong>Registration:</strong> {{ prescription.paper_prescriber_registration|default:"Not provided" }}</p>
+        <p><strong>External reference:</strong> {{ prescription.external_reference|default:"Not provided" }}</p>
+    {% endif %}
+
+    {% if prescription.verified_by %}
+        <p><strong>Verified by:</strong> {{ prescription.verified_by }} on {{ prescription.verified_at|date:"d M Y H:i" }}</p>
+    {% endif %}
+
+    {% if prescription.rejection_reason %}
+        <p><strong>Rejection reason:</strong> {{ prescription.rejection_reason }}</p>
+    {% endif %}
+</div>
+
+<div class="panel">
+    <h3>Prescribed Medicines</h3>
+    <table>
+        <tr>
+            <th>Medicine</th><th>Dose</th><th>Route</th><th>Frequency</th>
+            <th>Duration</th><th>Quantity</th><th>Instructions</th>
+        </tr>
+        {% for line in prescription.lines.all %}
+        <tr>
+            <td>{{ line.medicine.display_name }}</td>
+            <td>{{ line.dose }}</td>
+            <td>{{ line.get_route_display }}</td>
+            <td>{{ line.frequency }}</td>
+            <td>{{ line.duration_days }} days</td>
+            <td>{{ line.quantity }}</td>
+            <td>{{ line.instructions|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No medicines have been added.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% if prescription.status == "DRAFT" and can_add_line %}
+<div class="panel">
+    <h3>Add Medicine</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ line_form.as_p }}
+        <button type="submit">Add Medicine</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="panel">
+    <h3>Actions</h3>
+    <div class="actions">
+        {% if prescription.status == "DRAFT" and can_submit and prescription.lines.exists %}
+        <form method="post" action="{% url 'prescriptions:submit' prescription.pk %}">
+            {% csrf_token %}
+            <button type="submit">Submit for Verification</button>
+        </form>
+        {% endif %}
+
+        {% if prescription.status == "SUBMITTED" and can_verify %}
+        <form method="post" action="{% url 'prescriptions:verify' prescription.pk %}">
+            {% csrf_token %}
+            <button type="submit">Verify Prescription</button>
+        </form>
+        {% endif %}
+
+        {% if prescription.status == "SUBMITTED" and can_verify %}
+        <form method="post" action="{% url 'prescriptions:reject' prescription.pk %}">
+            {% csrf_token %}
+            <label>Reason for rejection</label>
+            <textarea name="reason" required rows="2"></textarea>
+            <button class="danger" type="submit">Reject Prescription</button>
+        </form>
+        {% endif %}
+
+        {% if prescription.status == "DRAFT" or prescription.status == "SUBMITTED" %}
+            {% if can_cancel %}
+            <form method="post" action="{% url 'prescriptions:cancel' prescription.pk %}">
+                {% csrf_token %}
+                <button class="danger" type="submit">Cancel Prescription</button>
+            </form>
+            {% endif %}
+        {% endif %}
+    </div>
+    <a class="button secondary" href="{% url 'prescriptions:list' %}">Back to Prescriptions</a>
+</div>
+{% endblock %}

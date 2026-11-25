@@ -1,0 +1,97 @@
+{% extends "procurement/base.html" %}
+{% block title %}{{ order.order_number }}{% endblock %}
+{% block content %}
+<div class="panel">
+    <h1>Purchase Order: {{ order.order_number }}</h1>
+    <p><strong>Supplier:</strong> {{ order.supplier.name }}</p>
+    <p><strong>Status:</strong> <span class="status">{{ order.get_status_display }}</span></p>
+    <p><strong>Created by:</strong> {{ order.created_by.email }}</p>
+    <p><strong>Expected delivery:</strong> {{ order.expected_delivery_date|default:"Not specified" }}</p>
+    <p><strong>Approved by:</strong> {{ order.approved_by|default:"Not approved" }}</p>
+    {% if order.rejection_reason %}
+        <p><strong>Rejection reason:</strong> {{ order.rejection_reason }}</p>
+    {% endif %}
+    <p><strong>Notes:</strong> {{ order.notes|default:"—" }}</p>
+
+    <div class="actions">
+        {% if order.status == "DRAFT" and perms.accounts.can_create_purchase_order %}
+            <form method="post" action="{% url 'procurement:purchase_order_submit' order.pk %}">
+                {% csrf_token %}
+                <button type="submit">Submit for approval</button>
+            </form>
+        {% endif %}
+
+        {% if order.status == "SUBMITTED" and perms.accounts.can_approve_purchase_order %}
+            <form method="post" action="{% url 'procurement:purchase_order_approve' order.pk %}">
+                {% csrf_token %}
+                <button type="submit">Approve order</button>
+            </form>
+            <a class="button danger" href="{% url 'procurement:purchase_order_reject' order.pk %}">Reject order</a>
+        {% endif %}
+
+        {% if order.status == "APPROVED" or order.status == "PARTIALLY_RECEIVED" %}
+            {% if perms.procurement.can_receive_purchase_order %}
+                <a class="button" href="{% url 'procurement:goods_receipt_create' order.pk %}">Record delivery</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="panel">
+    <h2>Ordered medicines</h2>
+    <table>
+        <thead><tr><th>Medicine</th><th>Ordered</th><th>Received</th><th>Outstanding</th><th>Unit cost</th><th>Line total</th></tr></thead>
+        <tbody>
+        {% for line in order.lines.all %}
+            <tr>
+                <td>{{ line.medicine.display_name }}</td>
+                <td>{{ line.quantity_ordered }}</td>
+                <td>{{ line.quantity_received }}</td>
+                <td>{{ line.outstanding_quantity }}</td>
+                <td>{{ line.unit_cost|floatformat:2 }}</td>
+                <td>{{ line.line_total|floatformat:2 }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6">No medicines added yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <h3>Total: KSh {{ order.total_amount|floatformat:2 }}</h3>
+</div>
+
+{% if order.status == "DRAFT" and perms.accounts.can_create_purchase_order %}
+<div class="panel">
+    <h2>Add medicine to this order</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ line_form.non_field_errors }}
+        {% for field in line_form %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+        {% endfor %}
+        <button type="submit">Add medicine</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="panel">
+    <h2>Goods received notes</h2>
+    <table>
+        <thead><tr><th>GRN number</th><th>Delivery note</th><th>Received date</th><th>Received by</th><th></th></tr></thead>
+        <tbody>
+        {% for receipt in receipts %}
+            <tr>
+                <td>{{ receipt.receipt_number }}</td>
+                <td>{{ receipt.supplier_delivery_note|default:"—" }}</td>
+                <td>{{ receipt.received_at|date:"d M Y H:i" }}</td>
+                <td>{{ receipt.received_by.email }}</td>
+                <td><a href="{% url 'procurement:goods_receipt_detail' receipt.pk %}">View GRN</a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No deliveries recorded.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

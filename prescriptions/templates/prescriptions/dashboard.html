@@ -1,0 +1,38 @@
+{% extends "procurement/base.html" %}
+{% block title %}Prescriptions Dashboard{% endblock %}
+{% block content %}
+<h2>Prescriptions Dashboard</h2>
+
+<div class="grid">
+    <div class="stat">All prescriptions<strong>{{ total }}</strong></div>
+    <div class="stat">Drafts<strong>{{ draft_count }}</strong></div>
+    <div class="stat">Awaiting verification<strong>{{ pending_count }}</strong></div>
+    <div class="stat">Verified<strong>{{ verified_count }}</strong></div>
+</div>
+
+<div class="panel">
+    <div class="actions">
+        <a class="button" href="{% url 'prescriptions:create' %}">New Prescription</a>
+        <a class="button secondary" href="{% url 'prescriptions:paper_create' %}">Register Paper Prescription</a>
+        <a class="button secondary" href="{% url 'prescriptions:list' %}">All Prescriptions</a>
+    </div>
+    <h3>Recent Prescriptions</h3>
+    <table>
+        <tr>
+            <th>Number</th><th>Patient</th><th>Source</th><th>Status</th><th>Date</th><th></th>
+        </tr>
+        {% for item in recent_prescriptions %}
+        <tr>
+            <td>{{ item.prescription_number }}</td>
+            <td>{{ item.patient.full_name }}</td>
+            <td>{{ item.get_source_display }}</td>
+            <td>{{ item.get_status_display }}</td>
+            <td>{{ item.created_at|date:"d M Y H:i" }}</td>
+            <td><a href="{% url 'prescriptions:detail' item.pk %}">Open</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No prescriptions have been recorded.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

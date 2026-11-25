@@ -1,0 +1,38 @@
+{% extends "procurement/base.html" %}
+{% block title %}Record Delivery{% endblock %}
+{% block content %}
+<div class="panel">
+    <h1>Record delivery for {{ order.order_number }}</h1>
+    <p><strong>Supplier:</strong> {{ order.supplier.name }}</p>
+    <p>Enter the batch details exactly as shown on the delivered medicine packaging.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ header_form.non_field_errors }}
+        {% for field in header_form %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+        {% endfor %}
+
+        <h2>Delivered medicine lines</h2>
+        {{ formset.management_form }}
+        {{ formset.non_form_errors }}
+
+        {% for form in formset %}
+            <div class="panel">
+                <h3>Delivery line {{ forloop.counter }}</h3>
+                {{ form.non_field_errors }}
+                {% for field in form %}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {{ field.errors }}
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Save goods receipt and update stock</button>
+        <a class="button secondary" href="{% url 'procurement:purchase_order_detail' order.pk %}">Cancel</a>
+    </form>
+</div>
+{% endblock %}

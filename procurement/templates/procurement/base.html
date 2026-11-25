@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}HPMS{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f8;
+            color: #243044;
+        }
+        header {
+            background: #153b5b;
+            color: white;
+            padding: 18px 5%;
+        }
+        header h2 { margin: 0; }
+        nav {
+            background: #e7edf2;
+            padding: 12px 5%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+        nav a {
+            color: #153b5b;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover { color: #176b87; }
+        main {
+            max-width: 1150px;
+            margin: 25px auto;
+            padding: 0 18px;
+        }
+        .panel {
+            background: white;
+            padding: 22px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 4px #0001;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+            gap: 15px;
+        }
+        .stat {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .stat strong {
+            display: block;
+            font-size: 27px;
+            margin-top: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            text-align: left;
+            padding: 11px;
+            border-bottom: 1px solid #e4e8ed;
+        }
+        th { background: #edf2f6; }
+        input, select, textarea {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 9px;
+            margin: 5px 0 13px;
+            border: 1px solid #bbc5cf;
+            border-radius: 4px;
+        }
+        label { font-weight: bold; display: block; }
+        button, .button {
+            display: inline-block;
+            background: #176b87;
+            color: white;
+            padding: 10px 15px;
+            border: 0;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .secondary { background: #536779; }
+        .danger { background: #a63838; }
+        .messages {
+            padding: 12px;
+            background: #e6f3e9;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .errorlist { color: #a63838; }
+        .muted { color: #687888; }
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        .status { font-weight: bold; }
+        @media(max-width:650px) {
+            nav { gap: 12px; }
+            table { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h2>Hospital Pharmacy Management System</h2>
+    <div>Pharmacy Management Portal</div>
+</header>
+
+<nav>
+    <a href="{% url 'procurement:dashboard' %}">Dashboard</a>
+    <a href="{% url 'staff:dashboard' %}">Staff</a>
+    <a href="{% url 'patients:directory' %}">Patients</a>
+    <a href="{% url 'medicines:directory' %}">Medicines</a>
+    <a href="{% url 'inventory:dashboard' %}">Inventory</a>
+    <a href="{% url 'procurement:dashboard' %}">Procurement</a>
+    <a href="{% url 'procurement:supplier_list' %}">Suppliers</a>
+    <a href="{% url 'procurement:purchase_order_list' %}">Purchase Orders</a>
+
+    {% if user.is_authenticated %}
+        <a href="{% url 'staff:logout' %}">Logout</a>
+    {% endif %}
+</nav>
+
+<main>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="messages">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

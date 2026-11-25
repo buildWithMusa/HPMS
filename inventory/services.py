@@ -1,19 +1,13 @@
-from datetime import date
+from datetime import timedelta
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F
+from django.utils import timezone
 
 from accounts.authorization import require_hpms_permission
-from medicines.models import Medicine
-
-from .models import (
-    StockLocation,
-    StockBatch,
-    StockBalance,
-    StockMovement,
-)
+from .models import StockLocation, StockBatch, StockBalance, StockMovement
 
 
 def validate_quantity(quantity):
@@ -33,16 +27,8 @@ def get_central_pharmacy():
 
 
 def receive_stock(
-    *,
-    actor,
-    medicine,
-    batch_number,
-    manufacture_date,
-    expiry_date,
-    quantity,
-    purchase_price,
-    selling_price,
-    notes=""
+    *, actor, medicine, batch_number, manufacture_date, expiry_date,
+    quantity, purchase_price, selling_price, notes=""
 ):
     require_hpms_permission(actor, "accounts.can_receive_stock")
     validate_quantity(quantity)
@@ -55,10 +41,12 @@ def receive_stock(
     if not batch_number:
         raise ValidationError("Batch number is required.")
 
+    today = timezone.localdate()
+
     if expiry_date <= manufacture_date:
         raise ValidationError("Expiry date must be after manufacture date.")
 
-    if expiry_date <= date.today():
+    if expiry_date <= today:
         raise ValidationError("Expired batches cannot be received as usable stock.")
 
     if Decimal(purchase_price) < 0 or Decimal(selling_price) < 0:
@@ -69,7 +57,7 @@ def receive_stock(
     with transaction.atomic():
         batch = StockBatch.objects.select_for_update().filter(
             medicine=medicine,
-            batch_number=batch_number
+            batch_number=batch_number,
         ).first()
 
         if batch:
@@ -95,16 +83,15 @@ def receive_stock(
             batch.full_clean()
             batch.save()
 
-        balance, created = StockBalance.objects.get_or_create(
+        balance, _ = StockBalance.objects.get_or_create(
             batch=batch,
             location=central,
-            defaults={"quantity": 0}
+            defaults={"quantity": 0},
         )
 
         balance = StockBalance.objects.select_for_update().get(pk=balance.pk)
         balance.quantity = F("quantity") + quantity
         balance.save(update_fields=["quantity", "updated_at"])
-        balance.refresh_from_db()
 
         StockMovement.objects.create(
             batch=batch,
@@ -119,13 +106,8 @@ def receive_stock(
 
 
 def transfer_stock(
-    *,
-    actor,
-    batch,
-    source_location,
-    destination_location,
-    quantity,
-    notes=""
+    *, actor, batch, source_location, destination_location,
+    quantity, notes=""
 ):
     require_hpms_permission(actor, "inventory.can_transfer_stock")
     validate_quantity(quantity)
@@ -139,30 +121,37 @@ def transfer_stock(
     if not batch.is_active:
         raise ValidationError("This medicine batch is inactive.")
 
-    if batch.expiry_date <= date.today():
+    if batch.expiry_date <= timezone.localdate():
         raise ValidationError("Expired medicine cannot be transferred.")
 
     with transaction.atomic():
-        try:
-            source = StockBalance.objects.select_for_update().get(
+        balances = {
+            balance.location_id: balance
+            for balance in StockBalance.objects.select_for_update().filter(
                 batch=batch,
-                location=source_location
-            )
-        except StockBalance.DoesNotExist:
-            raise ValidationError("No stock exists at the source location.")
+                location_id__in=[
+                    source_location.pk,
+                    destination_location.pk,
+                ],
+            ).order_by("location_id")
+        }
 
-        if source.quantity < quantity:
+        source = balances.get(source_location.pk)
+
+        if source is None or source.quantity < quantity:
             raise ValidationError("Insufficient stock at the source location.")
 
-        destination, created = StockBalance.objects.get_or_create(
-            batch=batch,
-            location=destination_location,
-            defaults={"quantity": 0}
-        )
+        destination = balances.get(destination_location.pk)
 
-        destination = StockBalance.objects.select_for_update().get(
-            pk=destination.pk
-        )
+        if destination is None:
+            destination, _ = StockBalance.objects.get_or_create(
+                batch=batch,
+                location=destination_location,
+                defaults={"quantity": 0},
+            )
+            destination = StockBalance.objects.select_for_update().get(
+                pk=destination.pk
+            )
 
         source.quantity -= quantity
         destination.quantity = F("quantity") + quantity
@@ -184,28 +173,25 @@ def transfer_stock(
 
 
 def dispense_stock(
-    *,
-    actor,
-    batch,
-    location,
-    quantity,
-    reference="",
-    notes=""
+    *, actor, batch, location, quantity, reference="", notes=""
 ):
     require_hpms_permission(actor, "inventory.can_dispense_stock")
     validate_quantity(quantity)
 
-    if batch.expiry_date <= date.today():
-        raise ValidationError("Expired medicine cannot be dispensed.")
+    if not location.is_active:
+        raise ValidationError("This stock location is inactive.")
 
     if not batch.is_active:
         raise ValidationError("This medicine batch is inactive.")
+
+    if batch.expiry_date <= timezone.localdate():
+        raise ValidationError("Expired medicine cannot be dispensed.")
 
     with transaction.atomic():
         try:
             balance = StockBalance.objects.select_for_update().get(
                 batch=batch,
-                location=location
+                location=location,
             )
         except StockBalance.DoesNotExist:
             raise ValidationError("No stock exists at this location.")
@@ -229,14 +215,145 @@ def dispense_stock(
     return True
 
 
-def adjust_stock(
-    *,
-    actor,
-    batch,
-    location,
-    quantity_change,
-    reason
+def dispense_medicine_fefo(
+    *, actor, medicine, location, quantity, reference="", notes=""
 ):
+    """
+    Dispense a medicine using First Expiry, First Out.
+    A single issue may consume several batches.
+    """
+    require_hpms_permission(actor, "inventory.can_dispense_stock")
+    validate_quantity(quantity)
+
+    if not medicine.is_active:
+        raise ValidationError("Inactive medicines cannot be dispensed.")
+
+    if not location.is_active:
+        raise ValidationError("This stock location is inactive.")
+
+    today = timezone.localdate()
+
+    with transaction.atomic():
+        balances = list(
+            StockBalance.objects.select_for_update()
+            .select_related("batch")
+            .filter(
+                batch__medicine=medicine,
+                batch__is_active=True,
+                batch__expiry_date__gt=today,
+                location=location,
+                quantity__gt=0,
+            )
+            .order_by("batch__expiry_date", "batch__created_at", "pk")
+        )
+
+        available = sum(balance.quantity for balance in balances)
+
+        if available < quantity:
+            raise ValidationError(
+                f"Insufficient usable stock. Available: {available}; "
+                f"requested: {quantity}."
+            )
+
+        remaining = quantity
+        allocations = []
+
+        for balance in balances:
+            if remaining == 0:
+                break
+
+            issued = min(balance.quantity, remaining)
+
+            balance.quantity -= issued
+            balance.save(update_fields=["quantity", "updated_at"])
+
+            movement = StockMovement.objects.create(
+                batch=balance.batch,
+                movement_type=StockMovement.MovementType.DISPENSE,
+                source_location=location,
+                quantity=issued,
+                performed_by=actor,
+                reference=reference,
+                notes=notes or "FEFO medicine issue",
+            )
+
+            allocations.append({
+                "batch": balance.batch,
+                "quantity": issued,
+                "movement": movement,
+            })
+
+            remaining -= issued
+
+    return allocations
+
+
+def return_stock(
+    *, actor, batch, source_location, destination_location,
+    quantity, reference="", notes=""
+):
+    """
+    Return usable stock from one location to another.
+    The original batch is retained.
+    """
+    require_hpms_permission(actor, "inventory.can_transfer_stock")
+    validate_quantity(quantity)
+
+    if source_location.pk == destination_location.pk:
+        raise ValidationError("Source and destination must be different.")
+
+    if not source_location.is_active or not destination_location.is_active:
+        raise ValidationError("Both locations must be active.")
+
+    if not batch.is_active:
+        raise ValidationError("Inactive batches cannot be returned.")
+
+    if batch.expiry_date <= timezone.localdate():
+        raise ValidationError("Expired medicine cannot be returned to usable stock.")
+
+    with transaction.atomic():
+        try:
+            source = StockBalance.objects.select_for_update().get(
+                batch=batch,
+                location=source_location,
+            )
+        except StockBalance.DoesNotExist:
+            raise ValidationError("No stock exists at the return source.")
+
+        if source.quantity < quantity:
+            raise ValidationError("Insufficient stock available for return.")
+
+        destination, _ = StockBalance.objects.get_or_create(
+            batch=batch,
+            location=destination_location,
+            defaults={"quantity": 0},
+        )
+
+        destination = StockBalance.objects.select_for_update().get(
+            pk=destination.pk
+        )
+
+        source.quantity -= quantity
+        destination.quantity = F("quantity") + quantity
+
+        source.save(update_fields=["quantity", "updated_at"])
+        destination.save(update_fields=["quantity", "updated_at"])
+
+        StockMovement.objects.create(
+            batch=batch,
+            movement_type=StockMovement.MovementType.RETURN,
+            source_location=source_location,
+            destination_location=destination_location,
+            quantity=quantity,
+            performed_by=actor,
+            reference=reference,
+            notes=notes,
+        )
+
+    return True
+
+
+def adjust_stock(*, actor, batch, location, quantity_change, reason):
     require_hpms_permission(actor, "inventory.can_adjust_stock")
 
     if isinstance(quantity_change, bool) or not isinstance(quantity_change, int):
@@ -248,15 +365,17 @@ def adjust_stock(
     if not reason or not reason.strip():
         raise ValidationError("A reason is required for stock adjustment.")
 
+    if not location.is_active:
+        raise ValidationError("Inactive locations cannot be adjusted.")
+
     with transaction.atomic():
-        balance, created = StockBalance.objects.get_or_create(
+        balance, _ = StockBalance.objects.get_or_create(
             batch=batch,
             location=location,
-            defaults={"quantity": 0}
+            defaults={"quantity": 0},
         )
 
         balance = StockBalance.objects.select_for_update().get(pk=balance.pk)
-
         new_quantity = balance.quantity + quantity_change
 
         if new_quantity < 0:
@@ -285,12 +404,6 @@ def adjust_stock(
 
 
 def get_available_batches(*, medicine, location):
-    """
-    Return usable stock batches in FEFO order:
-    First Expiry, First Out.
-    """
-    from django.utils import timezone
-
     return (
         StockBalance.objects
         .select_related("batch", "batch__medicine", "location")
@@ -306,9 +419,6 @@ def get_available_batches(*, medicine, location):
 
 
 def get_expiring_stock(*, days=90):
-    from datetime import timedelta
-    from django.utils import timezone
-
     today = timezone.localdate()
     cutoff = today + timedelta(days=days)
 
@@ -326,8 +436,6 @@ def get_expiring_stock(*, days=90):
 
 
 def get_expired_stock():
-    from django.utils import timezone
-
     return (
         StockBalance.objects
         .select_related("batch", "batch__medicine", "location")

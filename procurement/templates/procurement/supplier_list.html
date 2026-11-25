@@ -1,0 +1,31 @@
+{% extends "procurement/base.html" %}
+{% block title %}Suppliers{% endblock %}
+{% block content %}
+<div class="panel">
+    <h1>Suppliers</h1>
+    <div class="actions">
+        <a class="button" href="{% url 'procurement:supplier_create' %}">Register supplier</a>
+    </div>
+    <form method="get">
+        <label>Search supplier</label>
+        <input name="q" value="{{ query }}" placeholder="Supplier name">
+        <button type="submit">Search</button>
+    </form>
+    <table>
+        <thead><tr><th>Name</th><th>Contact person</th><th>Phone</th><th>Email</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for supplier in suppliers %}
+            <tr>
+                <td>{{ supplier.name }}</td>
+                <td>{{ supplier.contact_person|default:"—" }}</td>
+                <td>{{ supplier.phone|default:"—" }}</td>
+                <td>{{ supplier.email|default:"—" }}</td>
+                <td>{% if supplier.is_active %}Active{% else %}Inactive{% endif %}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No suppliers found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

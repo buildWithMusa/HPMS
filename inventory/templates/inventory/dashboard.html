@@ -65,7 +65,7 @@
     <div class="cards">
         <div class="card">
             <h3>Total Stock Units</h3>
-            <div class="number">{{ total_stock|default:0 }}</div>
+            <div class="number">{{ total_quantity|default:0 }}</div>
         </div>
         <div class="card">
             <h3>Active Batches</h3>
@@ -73,7 +73,7 @@
         </div>
         <div class="card">
             <h3>Stock Locations</h3>
-            <div class="number">{{ total_locations|default:0 }}</div>
+            <div class="number">{{ locations|default:0 }}</div>
         </div>
         <div class="card">
             <h3>Expiring Batches</h3>

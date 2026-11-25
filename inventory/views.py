@@ -182,13 +182,10 @@ def adjust_stock_view(request):
     form = StockAdjustmentForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        data = form.cleaned_data.copy()
-        data["notes"] = data.pop("reason")
-
         try:
             adjust_stock(
                 actor=request.user,
-                **data
+                **form.cleaned_data
             )
 
             messages.success(

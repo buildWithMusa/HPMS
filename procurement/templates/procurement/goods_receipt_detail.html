@@ -1,0 +1,38 @@
+{% extends "procurement/base.html" %}
+{% block title %}{{ receipt.receipt_number }}{% endblock %}
+{% block content %}
+<div class="panel">
+    <h1>Goods Received Note: {{ receipt.receipt_number }}</h1>
+    <p><strong>Purchase order:</strong>
+        <a href="{% url 'procurement:purchase_order_detail' receipt.purchase_order.pk %}">
+            {{ receipt.purchase_order.order_number }}
+        </a>
+    </p>
+    <p><strong>Supplier:</strong> {{ receipt.purchase_order.supplier.name }}</p>
+    <p><strong>Received by:</strong> {{ receipt.received_by.email }}</p>
+    <p><strong>Received at:</strong> {{ receipt.received_at|date:"d M Y H:i" }}</p>
+    <p><strong>Supplier delivery note:</strong> {{ receipt.supplier_delivery_note|default:"—" }}</p>
+    <p><strong>Notes:</strong> {{ receipt.notes|default:"—" }}</p>
+</div>
+<div class="panel">
+    <h2>Received items</h2>
+    <table>
+        <thead>
+            <tr><th>Medicine</th><th>Batch</th><th>Quantity</th><th>Manufactured</th><th>Expires</th><th>Purchase price</th><th>Selling price</th></tr>
+        </thead>
+        <tbody>
+        {% for line in receipt.lines.all %}
+            <tr>
+                <td>{{ line.purchase_order_line.medicine.display_name }}</td>
+                <td>{{ line.batch_number }}</td>
+                <td>{{ line.quantity_received }}</td>
+                <td>{{ line.manufacture_date }}</td>
+                <td>{{ line.expiry_date }}</td>
+                <td>{{ line.purchase_price|floatformat:2 }}</td>
+                <td>{{ line.selling_price|floatformat:2 }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "procurement/base.html" %}
+{% block title %}Procurement Dashboard{% endblock %}
+{% block content %}
+<h1>Procurement Dashboard</h1>
+<div class="grid">
+    <div class="stat">Active suppliers<strong>{{ supplier_count }}</strong></div>
+    <div class="stat">Purchase orders<strong>{{ total_orders }}</strong></div>
+    <div class="stat">Awaiting approval<strong>{{ pending_orders }}</strong></div>
+    <div class="stat">Approved, awaiting delivery<strong>{{ approved_orders }}</strong></div>
+    <div class="stat">Partially received<strong>{{ partial_orders }}</strong></div>
+</div>
+
+<div class="panel">
+    <div class="actions">
+        <a class="button" href="{% url 'procurement:supplier_create' %}">Register supplier</a>
+        <a class="button" href="{% url 'procurement:purchase_order_create' %}">Create purchase order</a>
+        <a class="button secondary" href="{% url 'procurement:purchase_order_list' %}">All purchase orders</a>
+    </div>
+    <h2>Recent purchase orders</h2>
+    <table>
+        <thead><tr><th>Order</th><th>Supplier</th><th>Status</th><th>Created</th><th></th></tr></thead>
+        <tbody>
+        {% for order in recent_orders %}
+            <tr>
+                <td>{{ order.order_number }}</td>
+                <td>{{ order.supplier.name }}</td>
+                <td>{{ order.get_status_display }}</td>
+                <td>{{ order.created_at|date:"d M Y" }}</td>
+                <td><a href="{% url 'procurement:purchase_order_detail' order.pk %}">Open</a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No purchase orders have been created.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

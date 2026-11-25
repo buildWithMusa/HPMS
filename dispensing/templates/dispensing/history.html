@@ -1,0 +1,35 @@
+{% extends "procurement/base.html" %}
+{% block title %}Dispensing History | HPMS{% endblock %}
+{% block content %}
+<h2>Dispensing History</h2>
+<div class="panel">
+    <p><a class="button secondary" href="{% url 'dispensing:dashboard' %}">Back to dispensing</a></p>
+    {% if records %}
+    <table>
+        <tr>
+            <th>Reference</th><th>Prescription</th><th>Patient</th>
+            <th>Medicine</th><th>Quantity</th><th>Batch allocations</th>
+            <th>Dispensed by</th><th>Date</th>
+        </tr>
+        {% for record in records %}
+        <tr>
+            <td>{{ record.reference }}</td>
+            <td>{{ record.prescription.prescription_number }}</td>
+            <td>{{ record.prescription.patient.full_name }}</td>
+            <td>{{ record.prescription_line.medicine.display_name }}</td>
+            <td>{{ record.quantity }}</td>
+            <td>
+                {% for allocation in record.batch_allocations.all %}
+                    {{ allocation.batch.batch_number }}: {{ allocation.quantity }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+            <td>{{ record.dispensed_by.email }}</td>
+            <td>{{ record.created_at }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No dispensing records found.</p>
+    {% endif %}
+</div>
+{% endblock %}

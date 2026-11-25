@@ -1,0 +1,54 @@
+{% extends "procurement/base.html" %}
+{% block title %}Dispensing | HPMS{% endblock %}
+{% block content %}
+<h2>Medicine Dispensing</h2>
+
+<div class="grid">
+    <div class="stat">Prescriptions awaiting or undergoing dispensing
+        <strong>{{ pending_count }}</strong>
+    </div>
+    <div class="stat">Dispensing transactions
+        <strong>{{ dispensing_count }}</strong>
+    </div>
+</div>
+
+<div class="panel">
+    <h3>Prescriptions ready for dispensing</h3>
+    {% if pending %}
+    <table>
+        <tr><th>Prescription</th><th>Patient</th><th>Status</th><th>Action</th></tr>
+        {% for prescription in pending %}
+        <tr>
+            <td>{{ prescription.prescription_number }}</td>
+            <td>{{ prescription.patient.full_name }}</td>
+            <td>{{ prescription.get_status_display }}</td>
+            <td><a class="button" href="{% url 'dispensing:dispense' prescription.pk %}">Dispense</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No verified prescriptions are waiting for dispensing.</p>
+    {% endif %}
+</div>
+
+<div class="panel">
+    <h3>Recent dispensing transactions</h3>
+    <p><a class="button secondary" href="{% url 'dispensing:history' %}">View dispensing history</a></p>
+    {% if recent %}
+    <table>
+        <tr><th>Reference</th><th>Patient</th><th>Medicine</th><th>Quantity</th><th>Date</th></tr>
+        {% for item in recent %}
+        <tr>
+            <td>{{ item.reference }}</td>
+            <td>{{ item.prescription.patient.full_name }}</td>
+            <td>{{ item.prescription_line.medicine.display_name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.created_at }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No dispensing transactions recorded yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
