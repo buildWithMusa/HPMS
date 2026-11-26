@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from home.views import home
 
 urlpatterns = [
+    path("", home, name="home"),
     path("inventory/", include("inventory.urls")),
     path("procurement/", include("procurement.urls")),
     path("prescriptions/", include("prescriptions.urls")),
@@ -29,4 +31,5 @@ urlpatterns = [
     include("patients.urls")
 ),
 path("medicines/", include("medicines.urls")),
+path("billing/", include("billing.urls")),
 ]

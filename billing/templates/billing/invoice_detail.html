@@ -1,0 +1,78 @@
+{% extends "procurement/base.html" %}
+
+{% block title %}Invoice {{ invoice.reference }} | HPMS{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <h1>Patient Invoice</h1>
+
+    <p><strong>Invoice reference:</strong> {{ invoice.reference }}</p>
+    <p><strong>Patient:</strong> {{ invoice.patient.full_name }}</p>
+    <p><strong>Hospital number:</strong> {{ invoice.patient.hospital_number }}</p>
+    <p><strong>Date created:</strong> {{ invoice.created_at }}</p>
+    <p><strong>Status:</strong> {{ invoice.get_status_display }}</p>
+
+    <hr>
+
+    <div class="grid">
+        <div class="stat">
+            Total amount
+            <strong>KES {{ invoice.total_amount }}</strong>
+        </div>
+        <div class="stat">
+            Amount paid
+            <strong>KES {{ invoice.amount_paid }}</strong>
+        </div>
+        <div class="stat">
+            Outstanding balance
+            <strong>KES {{ invoice.balance }}</strong>
+        </div>
+    </div>
+</div>
+
+<div class="panel">
+    <h2>Invoice Items</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Medicine</th>
+                <th>Batch</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in invoice.lines.all %}
+            <tr>
+                <td>{{ line.medicine_name }}</td>
+                <td>{{ line.batch_number }}</td>
+                <td>{{ line.quantity }}</td>
+                <td>KES {{ line.unit_price }}</td>
+                <td>KES {{ line.line_total }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No invoice items found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="actions">
+        {% if invoice.balance > 0 %}
+            {% if perms.billing.can_initiate_simulated_payment or perms.billing.can_record_cash_payment %}
+            <a class="button" href="{% url 'billing:payment_create' invoice.pk %}">
+                Record Payment
+            </a>
+            {% endif %}
+        {% endif %}
+
+        <a class="button secondary" href="{% url 'billing:dashboard' %}">
+            Back to Billing
+        </a>
+        <button type="button" onclick="window.print()">Print Invoice</button>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "procurement/base.html" %}
+
+{% block title %}Simulated Payment | HPMS{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <h1>Record Payment</h1>
+
+    <div class="panel">
+        <h3>DEMONSTRATION ONLY</h3>
+        <p>
+            This system simulates payment outcomes. It does not connect to
+            Safaricom, process real M-Pesa transactions or transfer money.
+        </p>
+        <p>Never enter an M-Pesa PIN here.</p>
+    </div>
+
+    <p><strong>Invoice:</strong> {{ invoice.reference }}</p>
+    <p><strong>Patient:</strong> {{ invoice.patient.full_name }}</p>
+    <p><strong>Outstanding balance:</strong> KES {{ invoice.balance }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit">Simulate Payment</button>
+        <a class="button secondary"
+           href="{% url 'billing:invoice_detail' invoice.pk %}">
+            Cancel
+        </a>
+    </form>
+</div>
+{% endblock %}

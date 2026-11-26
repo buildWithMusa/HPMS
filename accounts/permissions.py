@@ -1,16 +1,17 @@
-
 """
-Central permission policy for the Hospital Pharmacy Management System.
+Central permission policy for Arango's Pharmacy Management System.
 
-This file defines standard Django permissions and custom HPMS
-business permissions assigned to each system role.
+All role permissions are defined here, including the actual app-level
+permissions checked by the protected module views.
+
+This policy is additive. It does not remove existing group permissions.
 """
 
 from django.contrib.auth.models import Group
 
 
 # ---------------------------------------------------------
-# 1. STANDARD DJANGO PERMISSIONS
+# SHARED HOSPITAL PERMISSIONS
 # ---------------------------------------------------------
 
 HOSPITAL_STRUCTURE_VIEW = [
@@ -31,8 +32,7 @@ STAFF_MANAGEMENT = [
     "staff.add_staffassignment",
     "staff.change_staffassignment",
     "staff.delete_staffassignment",
-    "staff.view_staffprofile",
-    "staff.view_staffassignment",
+    *STAFF_VIEW,
 ]
 
 HOSPITAL_STRUCTURE_MANAGEMENT = [
@@ -57,40 +57,169 @@ USER_MANAGEMENT = [
 
 
 # ---------------------------------------------------------
-# 2. CUSTOM HPMS BUSINESS PERMISSIONS
+# PATIENTS
 # ---------------------------------------------------------
 
-PRESCRIPTION_CREATE = [
-    "accounts.can_create_prescription",
+PATIENT_VIEW = [
+    "patients.can_view_patient_records",
 ]
 
-PRESCRIPTION_VERIFY_AND_DISPENSE = [
-    "accounts.can_verify_prescription",
-    "accounts.can_dispense_medicine",
+PATIENT_MANAGEMENT = [
+    "patients.can_register_patient",
+    "patients.can_view_patient_records",
+    "patients.can_update_patient_records",
+    "patients.can_manage_patient_status",
 ]
 
-WARD_STOCK_REQUEST = [
-    "accounts.can_request_ward_stock",
+
+# ---------------------------------------------------------
+# MEDICINES
+# ---------------------------------------------------------
+
+MEDICINE_VIEW = [
+    "medicines.view_medicine",
+    "medicines.view_medicinecategory",
 ]
 
-STOCK_RECEIVING = [
+MEDICINE_MANAGEMENT = [
+    *MEDICINE_VIEW,
+    "medicines.add_medicine",
+    "medicines.change_medicine",
+    "medicines.can_manage_medicine_status",
+    "medicines.add_medicinecategory",
+    "medicines.change_medicinecategory",
+]
+
+
+# ---------------------------------------------------------
+# INVENTORY
+# ---------------------------------------------------------
+
+INVENTORY_VIEW = [
+    "inventory.can_view_inventory",
+]
+
+INVENTORY_PHARMACIST = [
+    "inventory.can_view_inventory",
+    "inventory.can_transfer_stock",
+    "inventory.can_dispense_stock",
+]
+
+INVENTORY_STORE = [
+    "inventory.can_view_inventory",
+    "inventory.can_transfer_stock",
+    "inventory.can_adjust_stock",
     "accounts.can_receive_stock",
 ]
 
-STOCK_APPROVAL = [
-    "accounts.can_approve_stock_adjustment",
+
+# ---------------------------------------------------------
+# PRESCRIPTIONS
+# ---------------------------------------------------------
+
+PRESCRIPTION_VIEW = [
+    "prescriptions.can_view_prescriptions",
 ]
 
-PURCHASE_CREATE = [
+PRESCRIPTION_DOCTOR = [
+    "prescriptions.can_view_prescriptions",
+    "prescriptions.can_create_prescription",
+    "prescriptions.can_cancel_prescription",
+]
+
+PRESCRIPTION_PHARMACIST = [
+    "prescriptions.can_view_prescriptions",
+    "prescriptions.can_verify_prescription",
+    "prescriptions.can_register_paper_prescription",
+    "prescriptions.can_cancel_prescription",
+]
+
+
+# ---------------------------------------------------------
+# DISPENSING
+# ---------------------------------------------------------
+
+DISPENSING_VIEW = [
+    "dispensing.can_view_dispensing",
+]
+
+DISPENSING_PHARMACIST = [
+    "dispensing.can_view_dispensing",
+    "dispensing.can_dispense_prescription",
+]
+
+
+# ---------------------------------------------------------
+# PROCUREMENT
+# ---------------------------------------------------------
+
+PROCUREMENT_VIEW = [
+    "procurement.can_view_procurement",
+]
+
+PROCUREMENT_OFFICER = [
+    "procurement.can_view_procurement",
+    "procurement.can_manage_suppliers",
+    "procurement.can_submit_purchase_order",
     "accounts.can_create_purchase_order",
 ]
 
-PURCHASE_APPROVAL = [
-    "accounts.can_approve_purchase_order",
+PROCUREMENT_RECEIVING = [
+    "procurement.can_view_procurement",
+    "procurement.can_receive_purchase_order",
+    "accounts.can_receive_stock",
 ]
 
-PATIENT_PAYMENT = [
+
+# ---------------------------------------------------------
+# BILLING
+# ---------------------------------------------------------
+
+BILLING_VIEW = [
+    "billing.can_view_billing",
+]
+
+BILLING_CASHIER = [
+    "billing.can_view_billing",
+    "billing.can_create_invoice",
+    "billing.can_initiate_payment",
+    "billing.can_record_cash_payment",
+]
+
+BILLING_PHARMACIST = [
+    "billing.can_view_billing",
+    "billing.can_create_invoice",
+    "billing.can_initiate_payment",
+]
+
+
+# ---------------------------------------------------------
+# EXISTING BUSINESS PERMISSIONS
+# Retained for compatibility with existing HPMS features.
+# ---------------------------------------------------------
+
+LEGACY_ADMIN_PERMISSIONS = [
+    "accounts.can_create_prescription",
+    "accounts.can_verify_prescription",
+    "accounts.can_dispense_medicine",
+    "accounts.can_request_ward_stock",
+    "accounts.can_receive_stock",
+    "accounts.can_approve_stock_adjustment",
+    "accounts.can_create_purchase_order",
+    "accounts.can_approve_purchase_order",
     "accounts.can_process_patient_payment",
+    "accounts.can_reconcile_payments",
+    "accounts.can_view_financial_reports",
+    "accounts.can_authorize_refund",
+    "accounts.can_manage_staff_access",
+    "accounts.can_access_all_departments",
+]
+
+MANAGER_PERMISSIONS = [
+    "accounts.can_approve_stock_adjustment",
+    "accounts.can_approve_purchase_order",
+    "accounts.can_view_financial_reports",
+    "accounts.can_authorize_refund",
 ]
 
 FINANCE_PERMISSIONS = [
@@ -99,110 +228,112 @@ FINANCE_PERMISSIONS = [
     "accounts.can_authorize_refund",
 ]
 
-FINANCIAL_REPORT_VIEW = [
-    "accounts.can_view_financial_reports",
-]
-
-STAFF_ACCESS_MANAGEMENT = [
-    "accounts.can_manage_staff_access",
-]
-
 
 # ---------------------------------------------------------
-# 3. ADMINISTRATOR PERMISSIONS
-# ---------------------------------------------------------
-
-ALL_CUSTOM_PERMISSIONS = (
-    PRESCRIPTION_CREATE
-    + PRESCRIPTION_VERIFY_AND_DISPENSE
-    + WARD_STOCK_REQUEST
-    + STOCK_RECEIVING
-    + STOCK_APPROVAL
-    + PURCHASE_CREATE
-    + PURCHASE_APPROVAL
-    + PATIENT_PAYMENT
-    + FINANCE_PERMISSIONS
-    + STAFF_ACCESS_MANAGEMENT
-
-)
-CROSS_DEPARTMENT_ACCESS = [
-    "accounts.can_access_all_departments",
-]
-
-ADMINISTRATOR_PERMISSIONS = (
-    STAFF_MANAGEMENT
-    + HOSPITAL_STRUCTURE_MANAGEMENT
-    + USER_MANAGEMENT
-    + ALL_CUSTOM_PERMISSIONS
-)
-
-
-# ---------------------------------------------------------
-# 4. ROLE-BASED PERMISSION POLICY
+# ROLE-BASED PERMISSION POLICY
 # ---------------------------------------------------------
 
 ROLE_PERMISSION_POLICY = {
 
-    "Hospital Administrator": ADMINISTRATOR_PERMISSIONS,
+    "Hospital Administrator": (
+        STAFF_MANAGEMENT
+        + HOSPITAL_STRUCTURE_MANAGEMENT
+        + USER_MANAGEMENT
+        + PATIENT_MANAGEMENT
+        + MEDICINE_MANAGEMENT
+        + INVENTORY_STORE
+        + INVENTORY_PHARMACIST
+        + PRESCRIPTION_DOCTOR
+        + PRESCRIPTION_PHARMACIST
+        + DISPENSING_PHARMACIST
+        + PROCUREMENT_OFFICER
+        + PROCUREMENT_RECEIVING
+        + BILLING_CASHIER
+        + LEGACY_ADMIN_PERMISSIONS
+    ),
 
     "Hospital Manager": (
         STAFF_VIEW
         + HOSPITAL_STRUCTURE_VIEW
-        + STOCK_APPROVAL
-        + PURCHASE_APPROVAL
-        + FINANCIAL_REPORT_VIEW
-        + ["accounts.can_authorize_refund"]
+        + PATIENT_VIEW
+        + MEDICINE_VIEW
+        + INVENTORY_VIEW
+        + PRESCRIPTION_VIEW
+        + DISPENSING_VIEW
+        + PROCUREMENT_VIEW
+        + BILLING_VIEW
+        + MANAGER_PERMISSIONS
     ),
 
     "Pharmacist": (
         HOSPITAL_STRUCTURE_VIEW
-        + PRESCRIPTION_VERIFY_AND_DISPENSE
+        + PATIENT_VIEW
+        + MEDICINE_MANAGEMENT
+        + INVENTORY_PHARMACIST
+        + PRESCRIPTION_PHARMACIST
+        + DISPENSING_PHARMACIST
+        + PROCUREMENT_VIEW
+        + BILLING_PHARMACIST
+        + [
+            "accounts.can_verify_prescription",
+            "accounts.can_dispense_medicine",
+        ]
     ),
 
     "Pharmacy Technician": (
         HOSPITAL_STRUCTURE_VIEW
+        + PATIENT_VIEW
+        + MEDICINE_VIEW
+        + INVENTORY_VIEW
+        + PRESCRIPTION_VIEW
+        + DISPENSING_VIEW
     ),
 
     "Store Manager": (
         HOSPITAL_STRUCTURE_VIEW
-        + STOCK_RECEIVING
+        + MEDICINE_MANAGEMENT
+        + INVENTORY_STORE
+        + PROCUREMENT_RECEIVING
     ),
 
     "Doctor": (
         HOSPITAL_STRUCTURE_VIEW
-        + PRESCRIPTION_CREATE
+        + PATIENT_VIEW
+        + PRESCRIPTION_DOCTOR
+        + ["accounts.can_create_prescription"]
     ),
 
     "Nurse": (
         HOSPITAL_STRUCTURE_VIEW
-        + WARD_STOCK_REQUEST
+        + PATIENT_VIEW
+        + ["accounts.can_request_ward_stock"]
     ),
 
     "Procurement Officer": (
         HOSPITAL_STRUCTURE_VIEW
-        + PURCHASE_CREATE
+        + PROCUREMENT_OFFICER
     ),
 
     "Finance Officer": (
         HOSPITAL_STRUCTURE_VIEW
+        + BILLING_VIEW
         + FINANCE_PERMISSIONS
     ),
 
     "Cashier": (
         HOSPITAL_STRUCTURE_VIEW
-        + PATIENT_PAYMENT
+        + BILLING_CASHIER
+        + ["accounts.can_process_patient_payment"]
     ),
 }
 
 
 # ---------------------------------------------------------
-# 5. POLICY ACCESS FUNCTIONS
+# POLICY ACCESS FUNCTIONS
 # ---------------------------------------------------------
 
 def get_role_permission_policy():
-    """
-    Return a copy of the configured HPMS role policy.
-    """
+    """Return a copy of the configured role policy."""
     return {
         role: list(permissions)
         for role, permissions in ROLE_PERMISSION_POLICY.items()
@@ -210,9 +341,7 @@ def get_role_permission_policy():
 
 
 def get_hpms_groups():
-    """
-    Retrieve existing HPMS groups configured in this policy.
-    """
+    """Retrieve the configured HPMS role groups."""
     return Group.objects.filter(
         name__in=ROLE_PERMISSION_POLICY.keys()
     ).order_by("name")

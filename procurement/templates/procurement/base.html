@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}HPMS{% endblock %}</title>
+    <title>{% block title %}Arango's Pharmacy Management{% endblock %}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -112,22 +112,59 @@
 </head>
 <body>
 <header>
-    <h2>Hospital Pharmacy Management System</h2>
-    <div>Pharmacy Management Portal</div>
+    <h2>Arango's Pharmacy Management</h2>
+    <div>Hospital Pharmacy Management Portal</div>
 </header>
 
 <nav>
-    <a href="{% url 'procurement:dashboard' %}">Dashboard</a>
-    <a href="{% url 'staff:dashboard' %}">Staff</a>
-    <a href="{% url 'patients:directory' %}">Patients</a>
-    <a href="{% url 'medicines:directory' %}">Medicines</a>
-    <a href="{% url 'inventory:dashboard' %}">Inventory</a>
-    <a href="{% url 'procurement:dashboard' %}">Procurement</a>
-    <a href="{% url 'procurement:supplier_list' %}">Suppliers</a>
-    <a href="{% url 'procurement:purchase_order_list' %}">Purchase Orders</a>
+    <a href="{% url 'home' %}">Home</a>
 
     {% if user.is_authenticated %}
-        <a href="{% url 'staff:logout' %}">Logout</a>
+        <a href="{% url 'staff:dashboard' %}">My Dashboard</a>
+
+        {% if perms.staff.view_staffprofile %}
+            <a href="{% url 'staff:directory' %}">Staff</a>
+        {% endif %}
+
+        {% if perms.patients.can_view_patient_records %}
+            <a href="{% url 'patients:directory' %}">Patients</a>
+        {% endif %}
+
+        {% if perms.medicines.view_medicine %}
+            <a href="{% url 'medicines:directory' %}">Medicines</a>
+        {% endif %}
+
+        {% if perms.inventory.can_view_inventory %}
+            <a href="{% url 'inventory:dashboard' %}">Inventory</a>
+        {% endif %}
+
+        {% if perms.prescriptions.can_view_prescriptions %}
+            <a href="{% url 'prescriptions:dashboard' %}">Prescriptions</a>
+        {% endif %}
+
+        {% if perms.dispensing.can_view_dispensing %}
+            <a href="{% url 'dispensing:dashboard' %}">Dispensing</a>
+        {% endif %}
+
+        {% if perms.procurement.can_view_procurement %}
+            <a href="{% url 'procurement:dashboard' %}">Procurement</a>
+        {% endif %}
+
+        {% if perms.procurement.can_manage_suppliers %}
+            <a href="{% url 'procurement:supplier_list' %}">Suppliers</a>
+        {% endif %}
+
+        {% if perms.billing.can_view_billing %}
+            <a href="{% url 'billing:dashboard' %}">Billing</a>
+        {% endif %}
+
+        <form method="post" action="{% url 'staff:logout' %}"
+              style="display:inline; margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="danger">Logout</button>
+        </form>
+    {% else %}
+        <a href="{% url 'staff:login' %}">Staff Login</a>
     {% endif %}
 </nav>
 

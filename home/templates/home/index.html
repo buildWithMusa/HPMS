@@ -1,0 +1,807 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arango's Pharmacy Management System</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --navy: #102f49;
+            --blue: #176b87;
+            --teal: #22a6a1;
+            --light: #f3f8fb;
+            --text: #24394b;
+            --muted: #64798a;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: "DM Sans", sans-serif;
+            color: var(--text);
+            background: var(--light);
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .topbar {
+            min-height: 76px;
+            padding: 12px 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            background: white;
+            box-shadow: 0 2px 15px #102f4910;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .login-area {
+            order: -1;
+        }
+
+        .login-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            background: var(--blue);
+            color: white;
+            padding: 12px 21px;
+            border-radius: 7px;
+            font-weight: 700;
+            transition: .25s ease;
+        }
+
+        .login-button:hover {
+            background: var(--navy);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 18px #176b8735;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-right: auto;
+        }
+
+        .brand-icon {
+            width: 43px;
+            height: 43px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            color: white;
+            background: linear-gradient(135deg, var(--blue), var(--teal));
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+        .brand h2 {
+            font-family: "Manrope", sans-serif;
+            font-size: 17px;
+            color: var(--navy);
+        }
+
+        .brand small {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .top-links {
+            display: flex;
+            gap: 22px;
+            align-items: center;
+        }
+
+        .top-links a {
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .top-links a:hover {
+            color: var(--teal);
+        }
+
+        .hero {
+            min-height: 570px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 80px 7%;
+            color: white;
+            background:
+                linear-gradient(90deg, rgba(9,37,58,.94), rgba(9,37,58,.76), rgba(9,37,58,.18)),
+                url("https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=2000&q=85")
+                center/cover no-repeat;
+        }
+
+        .hero-content {
+            max-width: 700px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 8px 13px;
+            border: 1px solid #ffffff55;
+            border-radius: 30px;
+            background: #ffffff17;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            font-family: "Manrope", sans-serif;
+            font-size: clamp(38px, 5vw, 65px);
+            line-height: 1.12;
+            margin-bottom: 22px;
+        }
+
+        .hero h1 span {
+            color: #63d4cb;
+        }
+
+        .hero p {
+            max-width: 590px;
+            color: #e1edf3;
+            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 13px;
+        }
+
+        .hero-button {
+            display: inline-block;
+            padding: 14px 22px;
+            border-radius: 7px;
+            background: var(--teal);
+            color: white;
+            font-weight: 700;
+            transition: .25s;
+        }
+
+        .hero-button:hover {
+            background: #168d88;
+            transform: translateY(-3px);
+        }
+
+        .hero-button.outline {
+            background: transparent;
+            border: 1px solid #ffffff99;
+        }
+
+        .hero-button.outline:hover {
+            background: white;
+            color: var(--navy);
+        }
+
+        .intro {
+            text-align: center;
+            max-width: 780px;
+            margin: auto;
+            padding: 85px 20px 35px;
+        }
+
+        .section-tag {
+            color: var(--teal);
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+        }
+
+        .intro h2, .section-heading h2 {
+            font-family: "Manrope", sans-serif;
+            color: var(--navy);
+            font-size: clamp(27px, 3vw, 39px);
+            margin-bottom: 14px;
+        }
+
+        .intro p, .section-heading p {
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .areas {
+            padding: 35px 6% 90px;
+        }
+
+        .section-heading {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 25px;
+            max-width: 1250px;
+            margin: auto;
+            align-items: stretch;
+        }
+
+        .area-card {
+            position: relative;
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 5px 22px #173c5510;
+            transition:
+                transform .35s cubic-bezier(.2,.8,.2,1),
+                box-shadow .35s ease;
+            transform-origin: center;
+        }
+
+        .area-card:hover {
+            transform: translateY(-13px) scale(1.035) rotate(-.5deg);
+            box-shadow: 0 22px 40px #173c5528;
+            z-index: 5;
+        }
+
+        .area-card:nth-child(even):hover {
+            transform: translateY(-13px) scale(1.035) rotate(.5deg);
+        }
+
+        .area-image {
+            height: 220px;
+            overflow: hidden;
+            background: #dce9ef;
+        }
+
+        .area-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform .55s ease;
+        }
+
+        .area-card:hover .area-image img {
+            transform: scale(1.12);
+        }
+
+        .area-info {
+            padding: 23px;
+        }
+
+        .area-number {
+            display: inline-block;
+            color: var(--teal);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 9px;
+        }
+
+        .area-info h3 {
+            font-family: "Manrope", sans-serif;
+            color: var(--navy);
+            font-size: 19px;
+            margin-bottom: 9px;
+        }
+
+        .area-info p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .features {
+            padding: 75px 7%;
+            background: white;
+        }
+
+        .feature-grid {
+            max-width: 1150px;
+            margin: 35px auto 0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .feature {
+            padding: 25px 20px;
+            background: var(--light);
+            border-radius: 12px;
+            transition: .3s;
+        }
+
+        .feature:hover {
+            transform: translateY(-7px);
+            background: #e7f5f5;
+        }
+
+        .feature-icon {
+            width: 45px;
+            height: 45px;
+            display: grid;
+            place-items: center;
+            background: #d9f2ef;
+            color: var(--blue);
+            border-radius: 10px;
+            font-size: 22px;
+            margin-bottom: 16px;
+        }
+
+        .feature h3 {
+            font-size: 16px;
+            color: var(--navy);
+            margin-bottom: 9px;
+        }
+
+        .feature p {
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--muted);
+        }
+
+        .cta {
+            margin: 75px auto;
+            max-width: 1100px;
+            padding: 55px 30px;
+            text-align: center;
+            border-radius: 18px;
+            color: white;
+            background: linear-gradient(120deg, var(--navy), var(--blue), var(--teal));
+        }
+
+        .cta h2 {
+            font-family: "Manrope", sans-serif;
+            font-size: 32px;
+            margin-bottom: 13px;
+        }
+
+        .cta p {
+            color: #e2f0f3;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .cta .hero-button {
+            background: white;
+            color: var(--navy);
+        }
+
+        .location-section {
+            padding: 75px 7%;
+            text-align: center;
+            background: var(--light);
+        }
+
+        .location-card {
+            max-width: 850px;
+            margin: 30px auto 0;
+            padding: 35px 25px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 5px 22px #173c5510;
+        }
+
+        .location-icon {
+            font-size: 38px;
+            margin-bottom: 15px;
+        }
+
+        .location-card h3 {
+            color: var(--navy);
+            font-family: "Manrope", sans-serif;
+            font-size: 23px;
+            margin-bottom: 12px;
+        }
+
+        .location-card p {
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .location-link {
+            display: inline-block;
+            padding: 12px 22px;
+            background: var(--blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 7px;
+            font-weight: 700;
+            transition: .3s;
+        }
+
+        .location-link:hover {
+            background: var(--teal);
+            transform: translateY(-3px);
+        }
+
+        footer {
+            padding: 35px 6%;
+            background: #0b2539;
+            color: #d6e2e9;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        footer strong {
+            color: white;
+        }
+
+        @media(max-width: 950px) {
+            .gallery {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .feature-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .top-links {
+                display: none;
+            }
+        }
+
+        @media(max-width: 600px) {
+            .topbar {
+                padding: 12px 4%;
+                gap: 10px;
+            }
+
+            .brand h2 {
+                font-size: 13px;
+            }
+
+            .brand small {
+                font-size: 9px;
+            }
+
+            .brand-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+            .login-button {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+
+            .hero {
+                min-height: 520px;
+                padding: 65px 6%;
+            }
+
+            .hero p {
+                font-size: 14px;
+            }
+
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+
+            .area-image {
+                height: 230px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta {
+                margin: 45px 5%;
+                padding: 40px 20px;
+            }
+
+            .cta h2 {
+                font-size: 25px;
+            }
+        }
+
+        @media(prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="login-area">
+        {% if user.is_authenticated %}
+            <a class="login-button" href="{% url 'staff:dashboard' %}">
+                My Dashboard
+            </a>
+        {% else %}
+            <a class="login-button" href="{% url 'staff:login' %}">
+                ⇥ Staff Login
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="brand">
+        <div class="brand-icon">+</div>
+        <div>
+            <h2>HPMS</h2>
+            <small>Hospital Pharmacy Management System</small>
+        </div>
+    </div>
+
+    <nav class="top-links">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#areas">Our Areas</a>
+        <a href="#features">Features</a>
+        <a href="#location">Location</a>
+    </nav>
+</header>
+
+<section class="hero" id="home">
+    <div class="hero-content">
+        <span class="eyebrow">Healthcare • Pharmacy • Technology</span>
+        <h1>Arango's Pharmacy Management. <span>Better Patient Care.</span></h1>
+        <p>
+            A centralized hospital pharmacy management system designed to
+            support patient registration, medicine management, prescriptions,
+            dispensing, stock control, procurement and billing.
+        </p>
+
+        <div class="hero-actions">
+            <a class="hero-button" href="#areas">Explore the System ↓</a>
+            {% if user.is_authenticated %}
+                <a class="hero-button outline" href="{% url 'staff:dashboard' %}">
+                    Open Dashboard
+                </a>
+            {% else %}
+                <a class="hero-button outline" href="{% url 'staff:login' %}">
+                    Staff Portal
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="intro" id="about">
+    <div class="section-tag">One connected system</div>
+    <h2>Everything in the Pharmacy, Working Together</h2>
+    <p>
+        Explore the main areas of HPMS. Each module supports a different part
+        of the hospital pharmacy workflow, helping authorized staff manage
+        information and operations in one place.
+    </p>
+</section>
+
+<section class="areas" id="areas">
+    <div class="section-heading">
+        <div class="section-tag">Explore HPMS</div>
+        <h2>Our System Areas</h2>
+        <p>Scroll through the different departments and functions.</p>
+    </div>
+
+    <div class="gallery">
+
+        <article class="area-card">
+            <div class="area-image">
+                <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=900&q=80"
+                     alt="Healthcare professional attending to a patient" loading="lazy">
+            </div>
+            <div class="area-info">
+                <span class="area-number">01 / PATIENTS</span>
+                <h3>Patient Management</h3>
+                <p>Patient registration, hospital identification, profiles and patient records.</p>
+            </div>
+        </article>
+
+        <article class="area-card">
+            <div class="area-image">
+                <img src="https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&w=900&q=80"
+                     alt="Medicine and pharmaceutical products" loading="lazy">
+            </div>
+            <div class="area-info">
+                <span class="area-number">02 / MEDICINES</span>
+                <h3>Medicine Catalogue</h3>
+                <p>Medicine registration, categories, descriptions and medicine availability.</p>
+            </div>
+        </article>
+
+        <article class="area-card">
+            <div class="area-image">
+                <img src="https://images.unsplash.com/photo-1584982751601-97dcc096659c?auto=format&fit=crop&w=900&q=80"
+                     alt="Doctor reviewing medical information" loading="lazy">
+            </div>
+            <div class="area-info">
+                <span class="area-number">03 / PRESCRIPTIONS</span>
+                <h3>Prescription Management</h3>
+                <p>Electronic and paper prescriptions, medicine instructions, verification and review.</p>
+            </div>
+        </article>
+
+        <article class="area-card">
+            <div class="area-image">
+                <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=900&q=80"
+                     alt="Healthcare staff working in a clinical environment" loading="lazy">
+            </div>
+            <div class="area-info">
+                <span class="area-number">04 / DISPENSING</span>
+                <h3>Medicine Dispensing</h3>
+                <p>Dispensing verified prescriptions, tracking quantities and recording batch allocations.</p>
+            </div>
+        </article>
+
+        <article class="area-card">
+            <div class="area-image">
+                <img src="https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=900&q=80"
+                     alt="Pharmaceutical medicine storage" loading="lazy">
+            </div>
+            <div class="area-info">
+                <span class="area-number">05 / INVENTORY</span>
+                <h3>Inventory Management</h3>
+                <p>Stock balances, batches, expiry tracking, stock transfers and stock movements.</p>
+            </div>
+        </article>
+
+        <article class="area-card">
+            <div class="area-image">
+                <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=900&q=80"
+                     alt="Organized warehouse and supplies" loading="lazy">
+            </div>
+            <div class="area-info">
+                <span class="area-number">06 / PROCUREMENT</span>
+                <h3>Procurement & Suppliers</h3>
+                <p>Supplier records, purchase orders, approvals and goods receipt processing.</p>
+            </div>
+        </article>
+
+        <article class="area-card">
+            <div class="area-image">
+                <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80"
+                     alt="Financial records and calculations" loading="lazy">
+            </div>
+            <div class="area-info">
+                <span class="area-number">07 / BILLING</span>
+                <h3>Billing & Payments</h3>
+                <p>Patient invoices, payment records, balances and demonstration receipts.</p>
+            </div>
+        </article>
+
+        <article class="area-card">
+            <div class="area-image">
+                <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=900&q=80"
+                     alt="Healthcare professional portrait" loading="lazy">
+            </div>
+            <div class="area-info">
+                <span class="area-number">08 / STAFF</span>
+                <h3>Staff Management</h3>
+                <p>Staff accounts, activation, profiles, assignments and access permissions.</p>
+            </div>
+        </article>
+
+        <article class="area-card">
+            <div class="area-image">
+                <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=900&q=80"
+                     alt="Modern hospital building and facilities" loading="lazy">
+            </div>
+            <div class="area-info">
+                <span class="area-number">09 / HOSPITAL</span>
+                <h3>Hospital Services</h3>
+                <p>Hospital departments, wards and service areas supporting pharmacy operations.</p>
+            </div>
+        </article>
+
+    </div>
+</section>
+
+<section class="features" id="features">
+    <div class="section-heading">
+        <div class="section-tag">Designed for pharmacy operations</div>
+        <h2>A Connected Pharmacy Workflow</h2>
+        <p>Key capabilities that support day-to-day pharmacy management.</p>
+    </div>
+
+    <div class="feature-grid">
+        <div class="feature">
+            <div class="feature-icon">🔐</div>
+            <h3>Role-Based Access</h3>
+            <p>Authorized access according to staff roles and permissions.</p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">📦</div>
+            <h3>Stock Traceability</h3>
+            <p>Follow medicine batches, movements and expiry information.</p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">🧾</div>
+            <h3>Invoice Records</h3>
+            <p>View invoices, balances and recorded payment transactions.</p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">🔎</div>
+            <h3>Organized Records</h3>
+            <p>Keep pharmacy workflows and records organized in one system.</p>
+        </div>
+    </div>
+</section>
+
+<section class="location-section" id="location">
+    <div class="section-heading">
+        <div class="section-tag">Our Location</div>
+        <h2>Find Arango's Pharmacy Management System</h2>
+        <p>Serving pharmacy management operations from Bungoma County, Kenya.</p>
+    </div>
+
+    <div class="location-card">
+        <div class="location-icon">📍</div>
+        <h3>Bungoma County, Kenya</h3>
+        <p>
+            Our pharmacy management system is associated with
+            Bungoma County, Kenya.
+        </p>
+        <a class="location-link"
+           href="https://www.google.com/maps/search/?api=1&query=Bungoma+County%2C+Kenya"
+           target="_blank"
+           rel="noopener noreferrer">
+            View on Google Maps →
+        </a>
+    </div>
+</section>
+
+<section class="cta">
+    <h2>Welcome to HPMS</h2>
+    <p>
+        Authorized hospital staff can sign in to access the pharmacy
+        management workspace.
+    </p>
+
+    {% if user.is_authenticated %}
+        <a class="hero-button" href="{% url 'staff:dashboard' %}">
+            Go to My Dashboard
+        </a>
+    {% else %}
+        <a class="hero-button" href="{% url 'staff:login' %}">
+            Staff Login
+        </a>
+    {% endif %}
+</section>
+
+<footer>
+    <strong>Hospital Pharmacy Management System (HPMS)</strong><br>
+    Supporting organized pharmacy operations and patient care.<br>
+    <strong>Location: Bungoma County, Kenya</strong><br>
+    <span>Authorized access only. Patient records are protected.</span>
+</footer>
+
+</body>
+</html>

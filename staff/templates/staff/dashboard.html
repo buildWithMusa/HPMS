@@ -1,30 +1,294 @@
+{% extends "procurement/base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Staff Dashboard | Arango's Pharmacy Management{% endblock %}
 
-    <title>HPMS Staff Dashboard</title>
-</head>
+{% block content %}
 
-<body>
+<style>
+.dashboard-wrapper {
+    max-width: 1250px;
+    margin: 0 auto;
+}
 
-    <h1>Hospital Pharmacy Management System</h1>
+.welcome-panel {
+    background: linear-gradient(120deg, #123b35, #176b58);
+    color: white;
+    padding: 32px;
+    border-radius: 14px;
+    margin-bottom: 28px;
+}
 
-    <h2>Welcome, {{ request.user.first_name }}</h2>
+.welcome-panel h1 {
+    margin: 0 0 10px;
+    font-size: 28px;
+}
 
-    <p>You are successfully logged in to HPMS.</p>
+.welcome-panel p {
+    margin: 7px 0;
+    color: #e2f3ed;
+}
 
-    <p>Email: {{ request.user.email }}</p>
+.dashboard-section {
+    margin: 28px 0 18px;
+}
 
-    <form method="POST" action="{% url 'staff:logout' %}">
+.dashboard-section h2 {
+    font-size: 21px;
+    margin-bottom: 8px;
+    color: #183b35;
+}
 
-        {% csrf_token %}
+.dashboard-section > p {
+    color: #64748b;
+    margin-top: 0;
+}
 
-        <button type="submit">Log Out</button>
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
 
-    </form>
+.dashboard-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 23px;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
 
-</body>
-</html>
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 9px 24px rgba(0,0,0,.09);
+}
+
+.dashboard-card h3 {
+    color: #183b35;
+    margin: 0 0 10px;
+    font-size: 19px;
+}
+
+.dashboard-card p {
+    color: #64748b;
+    line-height: 1.6;
+    min-height: 48px;
+}
+
+.dashboard-card a {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 10px 16px;
+    border-radius: 7px;
+    background: #176b58;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.dashboard-card a:hover {
+    background: #104b3e;
+}
+
+.profile-panel {
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 22px;
+    border-radius: 12px;
+    margin-top: 25px;
+}
+
+.profile-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 18px;
+}
+
+.profile-details strong {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.profile-details span {
+    color: #183b35;
+    font-weight: 600;
+}
+
+.role-tag {
+    display: inline-block;
+    background: #e6f4ef;
+    color: #176b58;
+    padding: 6px 12px;
+    margin: 5px 5px 0 0;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.empty-message {
+    background: white;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 25px;
+    color: #64748b;
+}
+
+@media(max-width: 600px) {
+    .welcome-panel {
+        padding: 23px;
+    }
+
+    .welcome-panel h1 {
+        font-size: 23px;
+    }
+}
+</style>
+
+<div class="dashboard-wrapper">
+
+    <section class="welcome-panel">
+        <h1>
+            Welcome,
+            {% if staff %}
+                {{ staff.first_name }}
+            {% else %}
+                {{ request.user.first_name|default:request.user.email }}
+            {% endif %}
+        </h1>
+
+        <p>Welcome to Arango's Pharmacy Management System.</p>
+
+        {% if staff %}
+            <p>{{ staff.job_title }}</p>
+        {% endif %}
+
+        <p>
+            Your dashboard provides access to the hospital functions
+            assigned to your account.
+        </p>
+    </section>
+
+    <section class="dashboard-section">
+        <h2>Your Workspaces</h2>
+        <p>Open a workspace to perform your authorized duties.</p>
+
+        {% if modules %}
+            <div class="dashboard-grid">
+                {% for module in modules %}
+                    <article class="dashboard-card">
+                        <h3>{{ module.title }}</h3>
+
+                        <p>{{ module.description }}</p>
+
+                        <a href="{% url module.url %}">
+                            {{ module.action }}
+                        </a>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-message">
+                No operational modules are currently assigned to your account.
+                Please contact your Hospital Administrator.
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="profile-panel">
+        <h2>My Staff Information</h2>
+
+        <div class="profile-details">
+
+            <div>
+                <strong>Full Name</strong>
+                <span>
+                    {% if staff %}
+                        {{ staff.first_name }}
+                        {{ staff.middle_name }}
+                        {{ staff.last_name }}
+                    {% else %}
+                        {{ request.user.get_full_name|default:"Not provided" }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <div>
+                <strong>Email Address</strong>
+                <span>{{ request.user.email }}</span>
+            </div>
+
+            <div>
+                <strong>Staff Number</strong>
+                <span>
+                    {% if staff %}
+                        {{ staff.staff_number }}
+                    {% else %}
+                        Not assigned
+                    {% endif %}
+                </span>
+            </div>
+
+            <div>
+                <strong>Job Title</strong>
+                <span>
+                    {% if staff %}
+                        {{ staff.job_title }}
+                    {% else %}
+                        Not assigned
+                    {% endif %}
+                </span>
+            </div>
+
+            <div>
+                <strong>Employment Status</strong>
+                <span>
+                    {% if staff %}
+                        {{ staff.get_employment_status_display }}
+                    {% else %}
+                        Not available
+                    {% endif %}
+                </span>
+            </div>
+
+        </div>
+
+        <h3>System Roles</h3>
+
+        {% for role in roles %}
+            <span class="role-tag">{{ role }}</span>
+        {% empty %}
+            <p>No system role group assigned.</p>
+        {% endfor %}
+
+        <h3>Department Assignments</h3>
+
+        {% for assignment in assignments %}
+            <p>
+                <strong>{{ assignment.department.name }}</strong>
+                {% if assignment.service_area %}
+                    — {{ assignment.service_area.name }}
+                {% endif %}
+                {% if assignment.is_primary %}
+                    (Primary)
+                {% endif %}
+            </p>
+        {% empty %}
+            <p>No active department assignment.</p>
+        {% endfor %}
+
+    </section>
+
+    <section class="dashboard-section">
+        <h2>Account Security</h2>
+
+        <form method="POST" action="{% url 'staff:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="button">
+                Log Out
+            </button>
+        </form>
+    </section>
+
+</div>
+
+{% endblock %}

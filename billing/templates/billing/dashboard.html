@@ -1,0 +1,99 @@
+{% extends "procurement/base.html" %}
+
+{% block title %}Billing Dashboard | HPMS{% endblock %}
+
+{% block content %}
+<h1>Billing Dashboard</h1>
+
+<div class="panel">
+    <h2>Billing and Payments</h2>
+    <p class="muted">
+        Manage patient invoices, outstanding balances and payment records.
+    </p>
+    <div class="actions">
+        <a class="button secondary" href="{% url 'billing:payment_history' %}">
+            Payment History
+        </a>
+    </div>
+    <p><strong>Demonstration system:</strong>
+        No real M-Pesa payments are processed.
+    </p>
+</div>
+
+<div class="panel">
+    <h2>Dispensing Records Awaiting Invoices</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Dispensing Reference</th>
+                <th>Patient</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in unbilled %}
+            <tr>
+                <td>{{ item.reference }}</td>
+                <td>{{ item.prescription.patient.full_name }}</td>
+                <td>
+                    {% if perms.billing.can_create_invoice %}
+                    <form method="post"
+                          action="{% url 'billing:create_invoice' item.pk %}">
+                        {% csrf_token %}
+                        <button type="submit">Generate Invoice</button>
+                    </form>
+                    {% else %}
+                    <span class="muted">No permission</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No unbilled dispensing records.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel">
+    <h2>Invoices</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Patient</th>
+                <th>Total (KES)</th>
+                <th>Paid (KES)</th>
+                <th>Balance (KES)</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{ invoice.reference }}</td>
+                <td>{{ invoice.patient.full_name }}</td>
+                <td>{{ invoice.total_amount }}</td>
+                <td>{{ invoice.amount_paid }}</td>
+                <td>{{ invoice.balance }}</td>
+                <td class="status">{{ invoice.get_status_display }}</td>
+                <td>
+                    <a class="button secondary"
+                       href="{% url 'billing:invoice_detail' invoice.pk %}">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">No invoices found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

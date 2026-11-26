@@ -1,0 +1,38 @@
+{% extends "procurement/base.html" %}
+
+{% block title %}Payment Receipt | HPMS{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <h1>HPMS Payment Receipt</h1>
+
+    <div class="panel">
+        <h3>SIMULATED PAYMENT</h3>
+        <p>
+            This is a demonstration receipt. It is not a real M-Pesa receipt
+            or proof of a real-money transaction.
+        </p>
+    </div>
+
+    <p><strong>Receipt number:</strong> {{ payment.receipt_number }}</p>
+    <p><strong>Invoice:</strong> {{ payment.invoice.reference }}</p>
+    <p><strong>Patient:</strong> {{ payment.invoice.patient.full_name }}</p>
+    <p><strong>Hospital number:</strong> {{ payment.invoice.patient.hospital_number }}</p>
+    <p><strong>Payment method:</strong> {{ payment.get_method_display }}</p>
+    <p><strong>Amount:</strong> KES {{ payment.amount }}</p>
+    <p><strong>Transaction reference:</strong> {{ payment.transaction_reference }}</p>
+    <p><strong>Date completed:</strong> {{ payment.completed_at }}</p>
+    <p><strong>Status:</strong> {{ payment.get_status_display }}</p>
+
+    <div class="actions">
+        <button type="button" onclick="window.print()">Print Receipt</button>
+        <a class="button secondary"
+           href="{% url 'billing:invoice_detail' payment.invoice.pk %}">
+            View Invoice
+        </a>
+        <a class="button secondary" href="{% url 'billing:dashboard' %}">
+            Billing Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

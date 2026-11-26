@@ -209,16 +209,158 @@ def staff_login(request):
 
 @login_required
 def staff_dashboard(request):
+    user = request.user
 
-    staff = getattr(
-        request.user,
-        "staffprofile",
-        None
+    # Correct OneToOne relationship name.
+    staff = getattr(user, "staff_profile", None)
+
+    # Active staff assignments.
+    assignments = []
+    if staff:
+        assignments = list(
+            staff.assignments.filter(
+                is_active=True
+            ).select_related(
+                "department",
+                "service_area"
+            )
+        )
+
+    # Determine the user's role groups.
+    roles = list(
+        user.groups.values_list("name", flat=True)
+    )
+
+    # Display only modules the user is authorized to access.
+    modules = []
+
+    def add_module(permission, title, description, url, action):
+        if user.has_perm(permission):
+            modules.append({
+                "title": title,
+                "description": description,
+                "url": url,
+                "action": action,
+            })
+
+    add_module(
+        "patients.can_view_patient_records",
+        "Patients",
+        "Access registered patient records and patient profiles.",
+        "patients:directory",
+        "Open Patient Records",
+    )
+
+    add_module(
+        "patients.can_register_patient",
+        "Patient Registration",
+        "Register new patients in the hospital system.",
+        "patients:register",
+        "Register Patient",
+    )
+
+    add_module(
+        "medicines.view_medicine",
+        "Medicines",
+        "View the medicine catalogue and medicine information.",
+        "medicines:directory",
+        "Open Medicine Catalogue",
+    )
+
+    add_module(
+        "medicines.add_medicine",
+        "Register Medicine",
+        "Add new medicines to the hospital catalogue.",
+        "medicines:register",
+        "Register Medicine",
+    )
+
+    add_module(
+        "inventory.can_view_inventory",
+        "Inventory",
+        "Monitor stock balances, batches, movements and expiry dates.",
+        "inventory:dashboard",
+        "Open Inventory",
+    )
+
+    add_module(
+        "prescriptions.can_view_prescriptions",
+        "Prescriptions",
+        "View and manage prescription records.",
+        "prescriptions:dashboard",
+        "Open Prescriptions",
+    )
+
+    add_module(
+        "prescriptions.can_create_prescription",
+        "Create Prescription",
+        "Prepare electronic prescriptions for patients.",
+        "prescriptions:create",
+        "Create Prescription",
+    )
+
+    add_module(
+        "prescriptions.can_register_paper_prescription",
+        "Paper Prescriptions",
+        "Register prescriptions received on paper.",
+        "prescriptions:paper_create",
+        "Register Paper Prescription",
+    )
+
+    add_module(
+        "dispensing.can_view_dispensing",
+        "Dispensing",
+        "View medicine dispensing records and dispensing activity.",
+        "dispensing:dashboard",
+        "Open Dispensing",
+    )
+
+    add_module(
+        "procurement.can_view_procurement",
+        "Procurement",
+        "View suppliers, purchase orders and goods receipts.",
+        "procurement:dashboard",
+        "Open Procurement",
+    )
+
+    add_module(
+        "procurement.can_manage_suppliers",
+        "Suppliers",
+        "Register and manage medicine suppliers.",
+        "procurement:supplier_list",
+        "Manage Suppliers",
+    )
+
+    add_module(
+        "accounts.can_create_purchase_order",
+        "Create Purchase Order",
+        "Prepare purchase orders for medicine supplies.",
+        "procurement:purchase_order_create",
+        "Create Purchase Order",
+    )
+
+    add_module(
+        "billing.can_view_billing",
+        "Billing",
+        "View invoices, payments and patient receipts.",
+        "billing:dashboard",
+        "Open Billing",
+    )
+
+    add_module(
+        "staff.view_staffprofile",
+        "Staff Directory",
+        "View staff members and their hospital assignments.",
+        "staff:directory",
+        "Open Staff Directory",
     )
 
     context = {
         "staff": staff,
-        "user": request.user,
+        "roles": roles,
+        "assignments": assignments,
+        "modules": modules,
+        "user": user,
     }
 
     return render(
@@ -226,6 +368,7 @@ def staff_dashboard(request):
         "staff/dashboard.html",
         context
     )
+
 
 
 # =========================================================
