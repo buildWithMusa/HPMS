@@ -108,8 +108,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 if env("DATABASE_URL", default=None):
     DATABASES = {
-        "default": env.db("DATABASE_URL", conn_max_age=600)
+        "default": env.db("DATABASE_URL")
     }
+    DATABASES["default"]["CONN_MAX_AGE"] = 600
     if not DEBUG:
         DATABASES["default"].setdefault("OPTIONS", {})
         DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
